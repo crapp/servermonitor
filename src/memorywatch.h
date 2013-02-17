@@ -17,11 +17,12 @@ class MemoryWatch
 public:
     bool watch;
     MemoryWatch(boost::shared_ptr<Config> cfg);
-    void queryProc();
+    void queryMemProc();
 
 private:
     boost::shared_ptr<Config> cfg;
     boost::filesystem::ifstream memInfoStream;
+
     void memoryWatchThread();
 };
 

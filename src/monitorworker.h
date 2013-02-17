@@ -19,9 +19,16 @@
 #define MONITORWORKER_H
 
 #include <iostream>
+#include <fcntl.h>                      /* For O_RDWR */
+#include <unistd.h>                     /* For open(), create() */
+#include <errno.h>                      //error numbers
+#include <sys/types.h>                  //for what?
+#include <sys/stat.h>                   //for mkfifo
 #include <boost/thread.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
 #include "config.h"
 #include "memorywatch.h"
 #include "cpuwatch.h"
@@ -35,6 +42,11 @@ public:
 private:
     boost::shared_ptr<Config> cfg;
     boost::shared_ptr<MemoryWatch> mwatch;
+    boost::shared_ptr<CPUWatch> cpuwatch;
+    boost::shared_ptr<boost::thread> mwatchThread;
+    boost::shared_ptr<boost::thread> cpuwatchThread;
+
+    void ipcNamedPipe();
 };
 
 #endif // MONITORWORKER_H

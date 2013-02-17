@@ -22,16 +22,67 @@ MonitorWorker::MonitorWorker(boost::shared_ptr<Config> cfg) : cfg(cfg)
 
 MonitorWorker::~MonitorWorker()
 {
-
 }
 
 int MonitorWorker::startMonitoring()
 {
     //starting memory monitor
     this->mwatch = boost::make_shared<MemoryWatch>(this->cfg);
-    //MemoryWatch *mwatch = new MemoryWatch(this->cfg);
-    //mwatch->queryProc();
-    boost::thread mwatchThread(boost::bind(&MemoryWatch::queryProc, mwatch));
-    mwatchThread.join();
+    this->mwatchThread = boost::make_shared<boost::thread>(boost::bind(&MemoryWatch::queryMemProc, this->mwatch));
+    this->cpuwatch = boost::make_shared<CPUWatch>(this->cfg);
+    this->cpuwatchThread = boost::make_shared<boost::thread>(boost::bind(&CPUWatch::queryCPUProc, this->cpuwatch));
+    this->ipcNamedPipe();
     return 0;
+}
+
+void MonitorWorker::ipcNamedPipe()
+{
+    int status, fifo, res;
+    int bytes_read = 0;
+    if (boost::filesystem::exists(this->cfg->fifoPath))
+    {
+        try
+        {
+            boost::filesystem::remove(this->cfg->fifoPath);
+        }
+        catch(boost::filesystem::filesystem_error &ex)
+        {
+            //TODO: Stop ServerMonitor
+            cerr << "Can not delete existing named pipe: " << ex.what() << endl;
+        }
+    }
+    status = mkfifo(this->cfg->fifoPath.c_str(), 0666);
+    //TODO: Check status of mkfifo and errno!
+    while(1)
+    {
+        char buf[80];
+        fifo = open(this->cfg->fifoPath.c_str(), O_RDONLY); //this is blocking until we receive something
+        //TODO: Check status of open and errno
+        do
+        {
+            res = read(fifo, buf, sizeof(buf));
+            bytes_read += res;
+        }while (res > 0);
+        string pipeString(buf, bytes_read-1);
+        bytes_read = 0;
+        //memset(&buf[0], 0, sizeof(buf)); //reset char array
+        close(fifo);
+        if (boost::algorithm::to_lower_copy(pipeString) == "exit")
+        {
+            this->mwatchThread->interrupt();
+            this->cpuwatchThread->interrupt();
+            this->mwatchThread->join();
+            this->cpuwatchThread->join();
+            break;
+        }
+    }
+    try
+    {
+        boost::filesystem::remove(this->cfg->fifoPath);
+    }
+    catch(boost::filesystem::filesystem_error &ex)
+    {
+        //TODO: Stop ServerMonitor
+        cerr << "Can not delete existing named pipe: " << ex.what() << endl;
+    }
 }

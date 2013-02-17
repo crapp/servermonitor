@@ -21,19 +21,32 @@
 
 using namespace std;
 
+//TODO: Make a config class and use pugixml to parse a xml config file
 struct Config {
     const string mailTo;
     const string mailFrom;
     const string memInfo;
     const int memMinFree;
-    const int waitMSThread;
+    const int memMaxSwap;
+    const int waitMemThread;
+    const string procCpuAvgLoad;
+    const float cpuAvgLoad5;
+    const float cpuAvgLoad15;
+    const int waitCpuThread;
+    const string fifoPath;
 
     Config() :
         mailTo("admin@geo.uni-tuebingen.de"),
         mailFrom("monitor@geo.uni-tuebingen.de"),
         memInfo("/proc/meminfo"),
         memMinFree(100000), //100MB
-        waitMSThread(1000)
+        memMaxSwap(0),
+        waitMemThread(1000),
+        procCpuAvgLoad("/proc/loadavg"),
+        cpuAvgLoad5(1.5),
+        cpuAvgLoad15(1.7),
+        waitCpuThread(30000),
+        fifoPath("/tmp/servermonitor.fifo")
     {
     }
 };
