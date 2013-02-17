@@ -24,10 +24,16 @@ using namespace std;
 struct Config {
     const string mailTo;
     const string mailFrom;
+    const string memInfo;
+    const int memMinFree;
+    const int waitMSThread;
 
     Config() :
         mailTo("admin@geo.uni-tuebingen.de"),
-        mailFrom("monitor@geo.uni-tuebingen.de")
+        mailFrom("monitor@geo.uni-tuebingen.de"),
+        memInfo("/proc/meminfo"),
+        memMinFree(100000), //100MB
+        waitMSThread(1000)
     {
     }
 };

@@ -19,23 +19,16 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include "config.h"
+#include "monitorworker.h"
 
 using namespace std;
 
 //command line arguments are not used. I would say we use a config XML file
 int main (int argc, char *argv[]) {
+    //our config object that we share with other objects
     boost::shared_ptr<Config> cfg(new Config());
-    boost::filesystem::ifstream procMemInfo ("/proc/meminfo");
-    if (procMemInfo.is_open())
-    {
-        string line;
-        while(procMemInfo.good())
-        {
-            getline(procMemInfo, line);
-            cout << line << endl;
-        }
-        procMemInfo.close();
-    }
+    MonitorWorker mw = MonitorWorker(cfg);
+    mw.startMonitoring();
     return 0;
 }
 

@@ -14,13 +14,27 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
 #ifndef MONITORWORKER_H
 #define MONITORWORKER_H
+
+#include <iostream>
+#include <boost/thread.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
+#include "config.h"
+#include "memorywatch.h"
+#include "cpuwatch.h"
 
 class MonitorWorker
 {
 public:
-    MonitorWorker();
+    MonitorWorker(boost::shared_ptr<Config> cfg);
+    ~MonitorWorker();
+    int startMonitoring();
+private:
+    boost::shared_ptr<Config> cfg;
+    boost::shared_ptr<MemoryWatch> mwatch;
 };
 
 #endif // MONITORWORKER_H
