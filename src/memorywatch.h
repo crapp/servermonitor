@@ -8,7 +8,7 @@
 class MemoryWatch : public ProcWatch
 {
 public:
-    MemoryWatch(boost::shared_ptr<Config> cfg);
+    MemoryWatch(boost::shared_ptr<Config> cfg, boost::shared_ptr<Logger> log);
     void queryMemProc();
 private:
     map<string, float> memInfoMap;

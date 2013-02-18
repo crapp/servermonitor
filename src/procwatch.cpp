@@ -49,11 +49,11 @@ void ProcWatch::procWatchThreadLoop()
                     //TODO: we need to catch specific boost exceptions
                     catch(exception &ex)
                     {
-                        cerr << ex.what() << endl;
+                        this->log->writeToLog(LVLERROR, this->threadID, ex.what());
                     }
                     catch(...)
                     {
-                        cerr << "MemoryWatch queryProc failed." << endl;
+                        this->log->writeToLog(LVLERROR, this->threadID, "MemoryWatch queryProc failed.");
                     }
                     this->handleStreamData(v);
                 }
@@ -61,14 +61,14 @@ void ProcWatch::procWatchThreadLoop()
                 this->procStream.close();
                 boost::this_thread::sleep(boost::posix_time::milliseconds(this->msToWait));
             } else {
-                cerr << "Can not open: " << this->procStreamPath << endl;
+                this->log->writeToLog(LVLERROR, this->threadID, "Can not open: " + this->procStreamPath.native());
                 break;
             }
         }
     }
     catch (boost::thread_interrupted)
     {
-        cout << "Thread interrupted";
+        this->log->writeToLog(LVLDEBUG, this->threadID, "Thread interrupted");
     }
 }
 

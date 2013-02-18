@@ -30,6 +30,7 @@
 #include <boost/make_shared.hpp>
 #include <boost/thread.hpp>
 #include "config.h"
+#include "logger.h"
 
 class ProcWatch
 {
@@ -42,7 +43,9 @@ protected:
     bool watch;
     bool foundSomething;
     int msToWait;
+    int threadID;
     boost::shared_ptr<Config> cfg;
+    boost::shared_ptr<Logger> log;
     boost::filesystem::ifstream procStream;
     boost::posix_time::ptime ptimeLastDetection;
     boost::filesystem::path procStreamPath;

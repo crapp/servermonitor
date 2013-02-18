@@ -16,13 +16,15 @@
 
 #include "cpuwatch.h"
 
-CPUWatch::CPUWatch(boost::shared_ptr<Config> cfg)
+CPUWatch::CPUWatch(boost::shared_ptr<Config> cfg, boost::shared_ptr<Logger> log)
 {
     this->watch = true;
     this->cfg = cfg;
+    this->log = log;
     this->foundSomething = false;
     this->procStreamPath = this->cfg->procCpuAvgLoad;
     this->msToWait = this->cfg->waitCpuThread;
+    this->threadID = 1;
 }
 
 void CPUWatch::queryCPUProc()
@@ -31,16 +33,16 @@ void CPUWatch::queryCPUProc()
 
 void CPUWatch::handleStreamData(vector<string> v)
 {
-    this->cpuLoad = v;
+    //this->cpuLoad = v;
 }
 
 void CPUWatch::checkStreamData()
 {
-//    if (this->checkLastDetection() == false)
-//    {
-//        this->cpuLoad.clear();
-//        return;
-//    }
+    if (this->checkLastDetection() == false)
+    {
+        this->cpuLoad.clear();
+        return;
+    }
     float avg5, avg15;
     if (cpuLoad.size() == 5)
     {
@@ -51,23 +53,27 @@ void CPUWatch::checkStreamData()
         }
         catch (boost::bad_lexical_cast &ex)
         {
-            cerr << "Can not cast: " << ex.what() << endl;
+            string s(ex.what());
+            log->writeToLog(LVLERROR, this->threadID, "Can not cast: " + s);
             return;
         }
         if (avg5 > this->cfg->cpuAvgLoad5 || avg15 > this->cfg->cpuAvgLoad15)
         {
             //TODO: Collect data and send e-mail!
-            cout << "Average CPU load exceeded threshold ";
+            string msg = "Average CPU load exceeded threshold ";
             BOOST_FOREACH(string &s, this->cpuLoad)
             {
-                cout << s << " ";
+                msg += s + " ";
             }
-            cout << endl;
+            log->writeToLog(LVLDEBUG, this->threadID, msg);
             this->foundSomething = true;
             this->ptimeLastDetection = boost::posix_time::second_clock::universal_time();
         }
     } else {
-        cerr << "Average CPU load returned wrong number of informations: " << cpuLoad.size() << ", expected 5" << endl;
+        //TODO: Catch exceptions
+        string s = "Average CPU load returned wrong number of informations: " +
+                boost::lexical_cast<string>(cpuLoad.size()) + ", expected 5";
+        log->writeToLog(LVLERROR, this->threadID, s);
     }
     cpuLoad.clear();
 }

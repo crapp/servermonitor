@@ -20,17 +20,18 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include "config.h"
+#include "logger.h"
 #include "monitorworker.h"
 
 using namespace std;
 
 //command line arguments are not used. I would say we use a config XML file
 int main (int argc, char *argv[]) {
-    ostringstream dummy;
-    dummy << 0;
     //our config object that we share with other objects
     boost::shared_ptr<Config> cfg(new Config());
-    boost::shared_ptr<MonitorWorker> mw(new MonitorWorker(cfg));
+    boost::shared_ptr<Logger> log(new Logger(cfg));
+    log->writeToLog(LVLDEBUG, 0 , "ServerMonitor starting...");
+    boost::shared_ptr<MonitorWorker> mw(new MonitorWorker(cfg, log));
     mw->startMonitoring();
     return 0;
 }

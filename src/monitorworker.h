@@ -30,21 +30,25 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 #include "config.h"
+#include "logger.h"
 #include "memorywatch.h"
 #include "cpuwatch.h"
 
 class MonitorWorker
 {
 public:
-    MonitorWorker(boost::shared_ptr<Config> cfg);
+    MonitorWorker(boost::shared_ptr<Config> cfg, boost::shared_ptr<Logger> log);
     ~MonitorWorker();
     int startMonitoring();
 private:
     boost::shared_ptr<Config> cfg;
+    boost::shared_ptr<Logger> log;
     boost::shared_ptr<MemoryWatch> mwatch;
     boost::shared_ptr<CPUWatch> cpuwatch;
     boost::shared_ptr<boost::thread> mwatchThread;
     boost::shared_ptr<boost::thread> cpuwatchThread;
+
+    int threadID;
 
     void ipcNamedPipe();
 };

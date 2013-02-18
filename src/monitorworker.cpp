@@ -16,8 +16,10 @@
 
 #include "monitorworker.h"
 
-MonitorWorker::MonitorWorker(boost::shared_ptr<Config> cfg) : cfg(cfg)
+MonitorWorker::MonitorWorker(boost::shared_ptr<Config> cfg, boost::shared_ptr<Logger> log) :
+    cfg(cfg), log(log)
 {
+    this->threadID = 0;
 }
 
 MonitorWorker::~MonitorWorker()
@@ -27,9 +29,9 @@ MonitorWorker::~MonitorWorker()
 int MonitorWorker::startMonitoring()
 {
     //starting memory monitor
-    this->mwatch = boost::make_shared<MemoryWatch>(this->cfg);
+    this->mwatch = boost::make_shared<MemoryWatch>(this->cfg, this->log);
     this->mwatchThread = boost::make_shared<boost::thread>(boost::bind(&MemoryWatch::procWatchThreadLoop, this->mwatch));
-    this->cpuwatch = boost::make_shared<CPUWatch>(this->cfg);
+    this->cpuwatch = boost::make_shared<CPUWatch>(this->cfg, this->log);
     this->cpuwatchThread = boost::make_shared<boost::thread>(boost::bind(&CPUWatch::procWatchThreadLoop, this->cpuwatch));
     //howto start a thread in a class
     //boost::thread t1(boost::bind(&MemoryWatch::memoryWatchThread, this));
@@ -51,7 +53,8 @@ void MonitorWorker::ipcNamedPipe()
         catch(boost::filesystem::filesystem_error &ex)
         {
             //TODO: Stop ServerMonitor
-            cerr << "Can not delete existing named pipe: " << ex.what() << endl;
+            string s(ex.what());
+            this->log->writeToLog(LVLERROR, this->threadID, "Can not delete existing named pipe: " + s);
         }
     }
     status = mkfifo(this->cfg->fifoPath.c_str(), 0666);
@@ -87,6 +90,7 @@ void MonitorWorker::ipcNamedPipe()
     catch(boost::filesystem::filesystem_error &ex)
     {
         //TODO: Stop ServerMonitor
-        cerr << "Can not delete existing named pipe: " << ex.what() << endl;
+        string s(ex.what());
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not delete existing named pipe: " + s);
     }
 }

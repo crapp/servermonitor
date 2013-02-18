@@ -32,7 +32,7 @@ find_package(Boost 1.42.0 COMPONENTS system filesystem thread date_time regex)
 if(Boost_FOUND)
     message("Boost found in: " ${Boost_INCLUDE_DIRS})
     include_directories(${Boost_INCLUDE_DIRS})
-    add_executable(ServerMonitor main.cpp config.h cpuwatch.h cpuwatch.cpp mailer.h mailer.cpp memorywatch.h memorywatch.cpp monitorworker.h monitorworker.cpp procwatch.h procwatch.cpp)
+    add_executable(ServerMonitor main.cpp config.h cpuwatch.h cpuwatch.cpp logger.h logger.cpp mailer.h mailer.cpp memorywatch.h memorywatch.cpp monitorworker.h monitorworker.cpp procwatch.h procwatch.cpp)
     target_link_libraries(ServerMonitor ${Boost_LIBRARIES})
 endif(Boost_FOUND)
 

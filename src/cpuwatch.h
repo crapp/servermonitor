@@ -19,12 +19,13 @@
 
 #include <boost/foreach.hpp>
 #include "config.h"
+#include "logger.h"
 #include "procwatch.h"
 
 class CPUWatch : public ProcWatch
 {
 public:
-    CPUWatch(boost::shared_ptr<Config> cfg);
+    CPUWatch(boost::shared_ptr<Config> cfg, boost::shared_ptr<Logger> log);
     void queryCPUProc();
 
 private:
