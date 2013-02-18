@@ -14,24 +14,43 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#ifndef PROCWATCH_H
+#define PROCWATCH_H
+
 #include <iostream>
+#include <vector>
 #include <string>
-#include <sstream>
-#include <boost/shared_ptr.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string_regex.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/regex.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
+#include <boost/thread.hpp>
 #include "config.h"
-#include "monitorworker.h"
 
-using namespace std;
+class ProcWatch
+{
+public:
+    ProcWatch();
+    virtual ~ProcWatch();
+    void procWatchThreadLoop();
 
-//command line arguments are not used. I would say we use a config XML file
-int main (int argc, char *argv[]) {
-    ostringstream dummy;
-    dummy << 0;
-    //our config object that we share with other objects
-    boost::shared_ptr<Config> cfg(new Config());
-    boost::shared_ptr<MonitorWorker> mw(new MonitorWorker(cfg));
-    mw->startMonitoring();
-    return 0;
-}
+protected:
+    bool watch;
+    bool foundSomething;
+    int msToWait;
+    boost::shared_ptr<Config> cfg;
+    boost::filesystem::ifstream procStream;
+    boost::posix_time::ptime ptimeLastDetection;
+    boost::filesystem::path procStreamPath;
 
+    bool checkLastDetection();
+    virtual void handleStreamData(vector<string> v) = 0;
+    virtual void checkStreamData() = 0;
+
+};
+
+#endif // PROCWATCH_H

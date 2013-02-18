@@ -26,6 +26,7 @@ struct Config {
     const string mailTo;
     const string mailFrom;
     const string memInfo;
+    const long nextMailAfter; //use long as boost time_duration returns long
     const int memMinFree;
     const int memMaxSwap;
     const int waitMemThread;
@@ -39,6 +40,7 @@ struct Config {
         mailTo("admin@geo.uni-tuebingen.de"),
         mailFrom("monitor@geo.uni-tuebingen.de"),
         memInfo("/proc/meminfo"),
+        nextMailAfter(43200), //in seconds, 43200 = every 12 hours
         memMinFree(100000), //100MB
         memMaxSwap(0),
         waitMemThread(1000),

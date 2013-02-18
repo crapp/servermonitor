@@ -28,9 +28,12 @@ int MonitorWorker::startMonitoring()
 {
     //starting memory monitor
     this->mwatch = boost::make_shared<MemoryWatch>(this->cfg);
-    this->mwatchThread = boost::make_shared<boost::thread>(boost::bind(&MemoryWatch::queryMemProc, this->mwatch));
+    this->mwatchThread = boost::make_shared<boost::thread>(boost::bind(&MemoryWatch::procWatchThreadLoop, this->mwatch));
     this->cpuwatch = boost::make_shared<CPUWatch>(this->cfg);
-    this->cpuwatchThread = boost::make_shared<boost::thread>(boost::bind(&CPUWatch::queryCPUProc, this->cpuwatch));
+    this->cpuwatchThread = boost::make_shared<boost::thread>(boost::bind(&CPUWatch::procWatchThreadLoop, this->cpuwatch));
+    //howto start a thread in a class
+    //boost::thread t1(boost::bind(&MemoryWatch::memoryWatchThread, this));
+    //t1.join();
     this->ipcNamedPipe();
     return 0;
 }
@@ -56,16 +59,17 @@ void MonitorWorker::ipcNamedPipe()
     while(1)
     {
         char buf[80];
+        memset(&buf[0], 0, sizeof(buf)); //reset/initialize char array
         fifo = open(this->cfg->fifoPath.c_str(), O_RDONLY); //this is blocking until we receive something
         //TODO: Check status of open and errno
         do
         {
+            //FIXME: This overrides our buffer buf in every loop
             res = read(fifo, buf, sizeof(buf));
             bytes_read += res;
         }while (res > 0);
         string pipeString(buf, bytes_read-1);
         bytes_read = 0;
-        //memset(&buf[0], 0, sizeof(buf)); //reset char array
         close(fifo);
         if (boost::algorithm::to_lower_copy(pipeString) == "exit")
         {

@@ -17,26 +17,21 @@
 #ifndef CPUWATCH_H
 #define CPUWATCH_H
 
-#include <iostream>
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string_regex.hpp>
-#include <boost/filesystem/fstream.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/thread.hpp>
+#include <boost/foreach.hpp>
 #include "config.h"
+#include "procwatch.h"
 
-class CPUWatch
+class CPUWatch : public ProcWatch
 {
 public:
-    bool watch;
     CPUWatch(boost::shared_ptr<Config> cfg);
     void queryCPUProc();
 
 private:
-    boost::shared_ptr<Config> cfg;
-    boost::filesystem::ifstream cpuAVGLoadStream;
+    vector<string> cpuLoad;
+
+    void handleStreamData(vector<string> v);
+    void checkStreamData();
     //ps -eo pcpu,pid,user,args | sort -r -k1
 };
 
