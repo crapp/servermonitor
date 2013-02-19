@@ -28,6 +28,7 @@
 #include <boost/regex.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/spirit/include/qi.hpp>
 #include <boost/thread.hpp>
 #include "config.h"
 #include "logger.h"
@@ -51,7 +52,7 @@ protected:
     boost::filesystem::path procStreamPath;
 
     bool checkLastDetection();
-    virtual void handleStreamData(vector<string> v) = 0;
+    virtual void handleStreamData(vector<string> &v) = 0;
     virtual void checkStreamData() = 0;
 
 };

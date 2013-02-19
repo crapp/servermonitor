@@ -31,9 +31,9 @@ void CPUWatch::queryCPUProc()
 {
 }
 
-void CPUWatch::handleStreamData(vector<string> v)
+void CPUWatch::handleStreamData(vector<string> &v)
 {
-    //this->cpuLoad = v;
+    this->cpuLoad = v;
 }
 
 void CPUWatch::checkStreamData()
@@ -46,15 +46,11 @@ void CPUWatch::checkStreamData()
     float avg5, avg15;
     if (cpuLoad.size() == 5)
     {
-        try
+        bool c1 = boost::spirit::qi::parse(cpuLoad[1].begin(), cpuLoad[1].end(), avg5);
+        bool c2 = boost::spirit::qi::parse(cpuLoad[2].begin(), cpuLoad[2].end(), avg15);
+        if (c1 == false || c2 == false)
         {
-            avg5 = boost::lexical_cast<float>(cpuLoad[1]);
-            avg15 = boost::lexical_cast<float>(cpuLoad[2]);
-        }
-        catch (boost::bad_lexical_cast &ex)
-        {
-            string s(ex.what());
-            log->writeToLog(LVLERROR, this->threadID, "Can not cast: " + s);
+            log->writeToLog(LVLERROR, this->threadID, "Can not cast: " + cpuLoad[1] + ", " + cpuLoad[2]);
             return;
         }
         if (avg5 > this->cfg->cpuAvgLoad5 || avg15 > this->cfg->cpuAvgLoad15)
@@ -71,8 +67,10 @@ void CPUWatch::checkStreamData()
         }
     } else {
         //TODO: Catch exceptions
+        ostringstream os;
+        os << cpuLoad.size();
         string s = "Average CPU load returned wrong number of informations: " +
-                boost::lexical_cast<string>(cpuLoad.size()) + ", expected 5";
+                os.str() + ", expected 5";
         log->writeToLog(LVLERROR, this->threadID, s);
     }
     cpuLoad.clear();

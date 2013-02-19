@@ -18,6 +18,7 @@
 #define CPUWATCH_H
 
 #include <boost/foreach.hpp>
+#include <sstream>
 #include "config.h"
 #include "logger.h"
 #include "procwatch.h"
@@ -31,7 +32,7 @@ public:
 private:
     vector<string> cpuLoad;
 
-    void handleStreamData(vector<string> v);
+    void handleStreamData(vector<string> &v);
     void checkStreamData();
     //ps -eo pcpu,pid,user,args | sort -r -k1
 };

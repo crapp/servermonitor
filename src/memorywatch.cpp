@@ -15,29 +15,32 @@ void MemoryWatch::queryMemProc()
 {
 }
 
-void MemoryWatch::handleStreamData(vector<string> v)
+void MemoryWatch::handleStreamData(vector<string> &v)
 {
-    try
+    if (v.size() > 2)
     {
-        //erase last colon from key
-        boost::algorithm::erase_last(v[0], ":");
-        this->memInfoMap[v[0]] = boost::lexical_cast<float>(v[1]);
-        //this->memInfoMap.insert(pair<string, float>(v[0], boost::lexical_cast<float>(v[1])));
-    }
-    catch(boost::bad_lexical_cast &ex)
-    {
-        string s(ex.what());
-        this->log->writeToLog(LVLERROR, this->threadID, "Lexical cast failed: " + s);
-    }
-    catch(exception &ex)
-    {
-        string s(ex.what());
-        this->log->writeToLog(LVLERROR, this->threadID, "Exception: " + s);
-    }
-    catch(...)
-    {
-        this->log->writeToLog(LVLERROR, this->threadID, "MemoryWatch queryProc failed.");
-        cerr << "MemoryWatch queryProc failed." << endl;
+        try
+        {
+            //erase last colon from key
+            boost::algorithm::erase_last(v[0], ":");
+            stringstream ss;
+            float f;
+            ss << v[1];
+            ss >> f;
+            this->memInfoMap.insert(pair<string, float>(v[0], f));
+        }
+        catch(exception &ex)
+        {
+            string s(ex.what());
+            this->log->writeToLog(LVLERROR, this->threadID, "Exception: " + s);
+        }
+        catch(...)
+        {
+            this->log->writeToLog(LVLERROR, this->threadID, "MemoryWatch queryProc failed.");
+            cerr << "MemoryWatch queryProc failed." << endl;
+        }
+    } else {
+        this->log->writeToLog(LVLERROR, this->threadID, "Fuck the duck vector wrong size :/");
     }
 }
 

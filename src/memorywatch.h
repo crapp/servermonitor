@@ -13,7 +13,7 @@ public:
 private:
     map<string, float> memInfoMap;
 
-    void handleStreamData(vector<string> v);
+    void handleStreamData(vector<string> &v);
     void checkStreamData();
 };
 
