@@ -50,18 +50,18 @@ void CPUWatch::checkStreamData()
         bool c2 = boost::spirit::qi::parse(cpuLoad[2].begin(), cpuLoad[2].end(), avg15);
         if (c1 == false || c2 == false)
         {
-            log->writeToLog(LVLERROR, this->threadID, "Can not cast: " + cpuLoad[1] + ", " + cpuLoad[2]);
+            this->log->writeToLog(LVLERROR, this->threadID, "Can not cast: " + cpuLoad[1] + ", " + cpuLoad[2]);
             return;
         }
         if (avg5 > this->cfg->cpuAvgLoad5 || avg15 > this->cfg->cpuAvgLoad15)
         {
             //TODO: Collect data and send e-mail!
             string msg = "Average CPU load exceeded threshold ";
-            BOOST_FOREACH(string &s, this->cpuLoad)
+            BOOST_FOREACH(const string &s, this->cpuLoad)
             {
                 msg += s + " ";
             }
-            log->writeToLog(LVLDEBUG, this->threadID, msg);
+            this->log->writeToLog(LVLDEBUG, this->threadID, msg);
             this->foundSomething = true;
             this->ptimeLastDetection = boost::posix_time::second_clock::universal_time();
         }
@@ -71,7 +71,7 @@ void CPUWatch::checkStreamData()
         os << cpuLoad.size();
         string s = "Average CPU load returned wrong number of informations: " +
                 os.str() + ", expected 5";
-        log->writeToLog(LVLERROR, this->threadID, s);
+        this->log->writeToLog(LVLERROR, this->threadID, s);
     }
     cpuLoad.clear();
 }

@@ -20,6 +20,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include "config.h"
+#include "smconfig.h"
 #include "logger.h"
 #include "monitorworker.h"
 
@@ -30,7 +31,7 @@ int main (int argc, char *argv[]) {
     //our config object that we share with other objects
     boost::shared_ptr<Config> cfg(new Config());
     boost::shared_ptr<Logger> log(new Logger(cfg));
-    log->writeToLog(LVLDEBUG, 0 , "ServerMonitor starting...");
+    log->writeToLog(LVLDEBUG, 0, "ServerMonitor starting...");
     boost::shared_ptr<MonitorWorker> mw(new MonitorWorker(cfg, log));
     mw->startMonitoring();
     return 0;

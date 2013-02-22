@@ -1,6 +1,9 @@
-# The version number.
-set (ServerMonitor_VERSION_MAJOR 0)
-set (ServerMonitor_VERSION_MINOR 1)
+#TODO: Adding a Version Number and Configured Header File
+#http://cmake.org/cmake/help/cmake_tutorial.html
+#The version number.
+set (ServerMonitor_VERSION_MAJOR 1)
+set (ServerMonitor_VERSION_MINOR 0)
+set (ConfigDir /etc/serverMonitor)
 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -g -std=c++11")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -g")
@@ -24,6 +27,28 @@ if(APPLE)
     message("Setting some XCode specific options")
 endif(APPLE)
 
+set(SOURCE
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/cpuwatch.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/logger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/mailer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/memorywatch.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/monitorworker.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/procwatch.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/smconfig.cpp
+)
+
+set(HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/config.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/cpuwatch.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/logger.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/mailer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/memorywatch.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/monitorworker.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/procwatch.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/smconfig.h
+)
+
 set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON) 
 set(Boost_USE_STATIC_RUNTIME OFF)
@@ -32,7 +57,14 @@ find_package(Boost 1.42.0 COMPONENTS system filesystem thread date_time regex)
 if(Boost_FOUND)
     message("Boost found in: " ${Boost_INCLUDE_DIRS})
     include_directories(${Boost_INCLUDE_DIRS})
-    add_executable(ServerMonitor main.cpp config.h cpuwatch.h cpuwatch.cpp logger.h logger.cpp mailer.h mailer.cpp memorywatch.h memorywatch.cpp monitorworker.h monitorworker.cpp procwatch.h procwatch.cpp)
-    target_link_libraries(ServerMonitor ${Boost_LIBRARIES})
+    add_subdirectory(config)
+    add_subdirectory(pugixml)
+    add_executable(serverMonitor ${HEADERS} ${SOURCE} ${PUGIHEADERS} ${PUGISOURCE})
+    target_link_libraries(serverMonitor ${Boost_LIBRARIES})
+
+    INSTALL(TARGETS serverMonitor
+        RUNTIME DESTINATION bin
+    )
+INSTALL(FILES ${CONFIG_FILES} DESTINATION ${ConfigDir})
 endif(Boost_FOUND)
 

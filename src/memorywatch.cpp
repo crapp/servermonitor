@@ -17,17 +17,16 @@ void MemoryWatch::queryMemProc()
 
 void MemoryWatch::handleStreamData(vector<string> &v)
 {
-    if (v.size() > 2)
+    if (v.size() >= 2)
     {
         try
         {
             //erase last colon from key
             boost::algorithm::erase_last(v[0], ":");
-            stringstream ss;
             float f;
-            ss << v[1];
-            ss >> f;
-            this->memInfoMap.insert(pair<string, float>(v[0], f));
+            bool cast = boost::spirit::qi::parse(v[1].begin(), v[1].end(), f);
+            if (cast)
+                this->memInfoMap.insert(pair<string, float>(v[0], f));
         }
         catch(exception &ex)
         {
@@ -56,13 +55,30 @@ void MemoryWatch::checkStreamData()
             this->memInfoMap.find("SwapTotal") != this->memInfoMap.end() &&
             this->memInfoMap.find("SwapFree") != this->memInfoMap.end())
     {
-        if (this->memInfoMap["MemTotal"] - this->memInfoMap["MemFree"] < this->cfg->memMinFree)
+        //TODO: List size is hardcoded. Should be set in config
+        if (this->lastMemFreeValues.size() < 10)
         {
-            //TODO: Send E-Mail on low memory!
-            this->log->writeToLog(LVLDEBUG, this->threadID, "Not much memory left");
-            this->foundSomething = true;
-            this->ptimeLastDetection = boost::posix_time::second_clock::universal_time();
+            this->lastMemFreeValues.push_back(this->memInfoMap["MemFree"]);
+        } else {
+            this->lastMemFreeValues.erase(this->lastMemFreeValues.begin());
+            this->lastMemFreeValues.push_back(this->memInfoMap["MemFree"]);
+            /*NOTE: we could hold a sum as a class member and update it everytime the vector gets updated.
+             *      No more need for foreach here. But ok the list is small...
+             */
+            float sum;
+            BOOST_FOREACH(const float &f, this->lastMemFreeValues)
+            {
+                sum += f;
+            }
+            if (this->memInfoMap["MemTotal"] - sum/this->lastMemFreeValues.size() < this->cfg->memMinFree)
+            {
+                //TODO: Send E-Mail on low memory!
+                this->log->writeToLog(LVLDEBUG, this->threadID, "Not much memory left");
+                this->foundSomething = true;
+                this->ptimeLastDetection = boost::posix_time::second_clock::universal_time();
+            }
         }
+
         if (this->memInfoMap["SwapTotal"] - this->memInfoMap["SwapFree"] > 0)
         {
             //TODO: Send E-Mail on swap usage!

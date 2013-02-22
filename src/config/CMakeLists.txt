@@ -1,0 +1,4 @@
+set (CONFIG_FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/config.xml
+    PARENT_SCOPE
+)

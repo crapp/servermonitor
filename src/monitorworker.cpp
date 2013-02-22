@@ -52,45 +52,61 @@ void MonitorWorker::ipcNamedPipe()
         }
         catch(boost::filesystem::filesystem_error &ex)
         {
-            //TODO: Stop ServerMonitor
             string s(ex.what());
-            this->log->writeToLog(LVLERROR, this->threadID, "Can not delete existing named pipe: " + s);
+            this->log->writeToLog(LVLERROR, this->threadID,
+                                  "Can not delete existing named pipe: " + s);
+            this->stopService();
         }
     }
     status = mkfifo(this->cfg->fifoPath.c_str(), 0666);
-    //TODO: Check status of mkfifo and errno!
+    if (status != 0)
+    {
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not create named pipe: " +
+                              this->cfg->fifoPath +  " -- Error Number: " + toString(errno));
+        this->stopService();
+    }
     while(1)
     {
         char buf[80];
         memset(&buf[0], 0, sizeof(buf)); //reset/initialize char array
         fifo = open(this->cfg->fifoPath.c_str(), O_RDONLY); //this is blocking until we receive something
-        //TODO: Check status of open and errno
+        string pipeString = "";
         do
         {
-            //FIXME: This overrides our buffer buf in every loop
             res = read(fifo, buf, sizeof(buf));
             bytes_read += res;
-        }while (res > 0);
-        string pipeString(buf, bytes_read-1);
+            if (res > 0)
+            {
+                string s(buf, res-1);
+                pipeString += s;
+            } else if (res == -1) {
+                this->log->writeToLog(LVLERROR, this->threadID, "Can not read from named pipe: "
+                                      + this->cfg->fifoPath +  " -- Error Number: " + toString(errno));
+            }
+        } while (res > 0);
         bytes_read = 0;
+
         close(fifo);
         if (boost::algorithm::to_lower_copy(pipeString) == "exit")
         {
-            this->mwatchThread->interrupt();
-            this->cpuwatchThread->interrupt();
-            this->mwatchThread->join();
-            this->cpuwatchThread->join();
+            this->stopService();
             break;
         }
     }
+}
+
+void MonitorWorker::stopService()
+{
     try
     {
         boost::filesystem::remove(this->cfg->fifoPath);
     }
     catch(boost::filesystem::filesystem_error &ex)
     {
-        //TODO: Stop ServerMonitor
         string s(ex.what());
         this->log->writeToLog(LVLERROR, this->threadID, "Can not delete existing named pipe: " + s);
     }
+    this->mwatchThread->interrupt();
+    this->cpuwatchThread->interrupt();
 }
+

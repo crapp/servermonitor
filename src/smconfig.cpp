@@ -14,26 +14,8 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef CPUWATCH_H
-#define CPUWATCH_H
+#include "smconfig.h"
 
-#include <sstream>
-#include "config.h"
-#include "logger.h"
-#include "procwatch.h"
-
-class CPUWatch : public ProcWatch
+SMConfig::SMConfig()
 {
-public:
-    CPUWatch(boost::shared_ptr<Config> cfg, boost::shared_ptr<Logger> log);
-    void queryCPUProc();
-
-private:
-    vector<string> cpuLoad;
-
-    void handleStreamData(vector<string> &v);
-    void checkStreamData();
-    //ps -eo pcpu,pid,user,args | sort -r -k1
-};
-
-#endif // CPUWATCH_H
+}

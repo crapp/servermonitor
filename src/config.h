@@ -18,6 +18,8 @@
 #define CONFIG_H
 
 #include <string>
+#include <sstream>
+#include "pugixml/pugixml.hpp"
 
 using namespace std;
 
@@ -38,19 +40,27 @@ struct Config {
 
     Config() :
         mailTo("admin@geo.uni-tuebingen.de"),
-        mailFrom("monitor@geo.uni-tuebingen.de"),
+        mailFrom("servermonitor@geo.uni-tuebingen.de"),
         memInfo("/proc/meminfo"),
         nextMailAfter(43200), //in seconds, 43200 = every 12 hours
         memMinFree(100000), //100MB
         memMaxSwap(0),
-        waitMemThread(1000),
+        waitMemThread(1000), //ms
         procCpuAvgLoad("/proc/loadavg"),
         cpuAvgLoad5(1.5),
         cpuAvgLoad15(1.7),
-        waitCpuThread(30000),
+        waitCpuThread(30000), //ms
         fifoPath("/tmp/servermonitor.fifo")
     {
     }
 };
+
+template <typename T>
+string toString(T t)
+{
+    ostringstream os;
+    os << t;
+    return os.str();
+}
 
 #endif // CONFIG_H

@@ -16,9 +16,34 @@
 
 #include "mailer.h"
 
-Mailer::Mailer(string mailSubject, string mailMessage) : mailSubject(mailSubject),
-    mailMessage(mailMessage)
+Mailer::Mailer(boost::shared_ptr<Config> cfg, boost::shared_ptr<Logger> log) :
+    cfg(cfg), log(log)
 {
-    this->cfg = boost::make_shared<Config>();
+    this->mtx = boost::make_shared<boost::mutex>();
 }
 
+bool Mailer::sendmail(const string &subject, const string &message) {
+
+    //make this email sender thread safe with a simple lock
+    this->mtx->lock();
+    bool success = false;
+
+    try {
+        FILE *mta = popen("/usr/lib/sendmail -t", "w");
+        if (mta != 0) {
+            fprintf(mta, "To: %s\n", this->cfg->mailTo.c_str());
+            fprintf(mta, "From: %s\n", this->cfg->mailFrom.c_str());
+            fprintf(mta, "Subject: %s\n\n", subject.c_str());
+            fwrite(message.c_str(), 1, strlen(message.c_str()), mta);
+            fwrite(".\n", 1, 2, mta);
+
+            pclose(mta);
+
+            success = true;
+        }
+    } catch (...) {
+        this->log->writeToLog(LVLERROR, -1, "Can not send email");
+    }
+    this->mtx->unlock();
+    return success;
+}

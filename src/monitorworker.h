@@ -51,6 +51,7 @@ private:
     int threadID;
 
     void ipcNamedPipe();
+    void stopService();
 };
 
 #endif // MONITORWORKER_H

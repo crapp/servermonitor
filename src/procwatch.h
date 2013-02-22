@@ -25,6 +25,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/foreach.hpp>
 #include <boost/regex.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>

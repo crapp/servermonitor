@@ -1,0 +1,9 @@
+set(PUGISOURCE
+   ${CMAKE_CURRENT_SOURCE_DIR}/pugixml.cpp
+   PARENT_SCOPE
+)
+set(PUGIHEADERS
+   ${CMAKE_CURRENT_SOURCE_DIR}/pugixml.hpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/pugiconfig.hpp
+   PARENT_SCOPE
+)

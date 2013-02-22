@@ -21,18 +21,21 @@
 #include <string>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/thread/mutex.hpp>
 #include "config.h"
+#include "logger.h"
 
 using namespace std;
 
 class Mailer
 {
 public:
-    Mailer(string mailSubject, string mailMessage);
+    Mailer(boost::shared_ptr<Config> cfg, boost::shared_ptr<Logger> log);
+    bool sendmail(const string &subject, const string &message);
 private:
-    const string mailSubject;
-    const string mailMessage;
     boost::shared_ptr<Config> cfg;
+    boost::shared_ptr<Logger> log;
+    boost::shared_ptr<boost::mutex> mtx;
 };
 
 #endif // MAILER_H

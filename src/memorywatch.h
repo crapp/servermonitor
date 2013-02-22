@@ -1,7 +1,7 @@
 #ifndef MEMORYWATCH_H
 #define MEMORYWATCH_H
 
-
+#include <list>
 #include "config.h"
 #include "procwatch.h"
 
@@ -12,6 +12,7 @@ public:
     void queryMemProc();
 private:
     map<string, float> memInfoMap;
+    list<float> lastMemFreeValues;
 
     void handleStreamData(vector<string> &v);
     void checkStreamData();
