@@ -16,14 +16,25 @@
 
 #include "cpuwatch.h"
 
-CPUWatch::CPUWatch(boost::shared_ptr<Config> cfg, boost::shared_ptr<Logger> log)
+CPUWatch::CPUWatch(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log)
 {
     this->watch = true;
     this->cfg = cfg;
     this->log = log;
     this->foundSomething = false;
-    this->procStreamPath = this->cfg->procCpuAvgLoad;
-    this->msToWait = this->cfg->waitCpuThread;
+    this->procStreamPath = this->cfg->getConfigValue("/config/sysstat/cpu/processFilesystem");
+    string msToWait = this->cfg->getConfigValue("/config/sysstat/cpu/pollTime");
+    if (!boost::spirit::qi::parse(msToWait.begin(), msToWait.end(), this->msToWait))
+        this->msToWait = 1000;
+    string nextMailAfter = this->cfg->getConfigValue("/config/email/secondsNextMail");
+    if (!boost::spirit::qi::parse(nextMailAfter.begin(), nextMailAfter.end(), this->nextMailAfter))
+        this->nextMailAfter = 43200; //every 12 hours
+    string cpuAvgLoad5 = this->cfg->getConfigValue("/config/sysstat/cpu/avg5threshold");
+    string cpuAvgLoad15 = this->cfg->getConfigValue("/config/sysstat/cpu/avg15threshold");
+    if (!boost::spirit::qi::parse(cpuAvgLoad5.begin(), cpuAvgLoad5.end(), this->cpuAvgLoad5))
+        this->cpuAvgLoad5 = 0.7;
+    if (!boost::spirit::qi::parse(cpuAvgLoad15.begin(), cpuAvgLoad15.end(), this->cpuAvgLoad15))
+        this->cpuAvgLoad15 = 0.8;
     this->threadID = 1;
 }
 
@@ -53,7 +64,7 @@ void CPUWatch::checkStreamData()
             this->log->writeToLog(LVLERROR, this->threadID, "Can not cast: " + cpuLoad[1] + ", " + cpuLoad[2]);
             return;
         }
-        if (avg5 > this->cfg->cpuAvgLoad5 || avg15 > this->cfg->cpuAvgLoad15)
+        if (avg5 > this->cpuAvgLoad5 || avg15 > this->cpuAvgLoad15)
         {
             //TODO: Collect data and send e-mail!
             string msg = "Average CPU load exceeded threshold ";
@@ -66,12 +77,8 @@ void CPUWatch::checkStreamData()
             this->ptimeLastDetection = boost::posix_time::second_clock::universal_time();
         }
     } else {
-        //TODO: Catch exceptions
-        ostringstream os;
-        os << cpuLoad.size();
-        string s = "Average CPU load returned wrong number of informations: " +
-                os.str() + ", expected 5";
-        this->log->writeToLog(LVLERROR, this->threadID, s);
+        this->log->writeToLog(LVLERROR, this->threadID, "Average CPU load returned wrong number of informations: " +
+                              toString(cpuLoad.size()) + ", expected 5");
     }
     cpuLoad.clear();
 }

@@ -16,7 +16,7 @@
 
 #include "mailer.h"
 
-Mailer::Mailer(boost::shared_ptr<Config> cfg, boost::shared_ptr<Logger> log) :
+Mailer::Mailer(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log) :
     cfg(cfg), log(log)
 {
     this->mtx = boost::make_shared<boost::mutex>();
@@ -29,10 +29,10 @@ bool Mailer::sendmail(const string &subject, const string &message) {
     bool success = false;
 
     try {
-        FILE *mta = popen("/usr/lib/sendmail -t", "w");
+        FILE *mta = popen(this->cfg->getConfigValue("/config/email/mailCommand").c_str(), "w");
         if (mta != 0) {
-            fprintf(mta, "To: %s\n", this->cfg->mailTo.c_str());
-            fprintf(mta, "From: %s\n", this->cfg->mailFrom.c_str());
+            fprintf(mta, "To: %s\n", this->cfg->getConfigValue("/config/email/mailTo").c_str());
+            fprintf(mta, "From: %s\n", this->cfg->getConfigValue("/config/email/mailFrom").c_str());
             fprintf(mta, "Subject: %s\n\n", subject.c_str());
             fwrite(message.c_str(), 1, strlen(message.c_str()), mta);
             fwrite(".\n", 1, 2, mta);

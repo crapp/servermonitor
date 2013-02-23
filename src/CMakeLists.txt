@@ -1,8 +1,8 @@
 #TODO: Adding a Version Number and Configured Header File
 #http://cmake.org/cmake/help/cmake_tutorial.html
 #The version number.
-set (ServerMonitor_VERSION_MAJOR 1)
-set (ServerMonitor_VERSION_MINOR 0)
+set (serverMonitor_VERSION_MAJOR 1)
+set (serverMonitor_VERSION_MINOR 0)
 set (ConfigDir /etc/serverMonitor)
 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -g -std=c++11")
@@ -21,8 +21,8 @@ endmacro (set_xcode_property)
 if(APPLE)
     #set_xcode_property(GDALTester CLANG_CXX_LANGUAGE_STANDARD "c++11")
     #set_xcode_property(GDALTester CLANG_CXX_LIBRARY "libc++")
-    set_xcode_property(ServerMonitor LIBRARY_SEARCH_PATHS[arch=*] "/opt/local/lib")
-    set_xcode_property(ServerMonitor HEADER_SEARCH_PATHS[arch=*]
+    set_xcode_property(serverMonitor LIBRARY_SEARCH_PATHS[arch=*] "/opt/local/lib")
+    set_xcode_property(serverMonitor HEADER_SEARCH_PATHS[arch=*]
         "/opt/local/include")
     message("Setting some XCode specific options")
 endif(APPLE)
@@ -39,8 +39,8 @@ set(SOURCE
 )
 
 set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/config.h
     ${CMAKE_CURRENT_SOURCE_DIR}/cpuwatch.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/globalutils.h
     ${CMAKE_CURRENT_SOURCE_DIR}/logger.h
     ${CMAKE_CURRENT_SOURCE_DIR}/mailer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/memorywatch.h

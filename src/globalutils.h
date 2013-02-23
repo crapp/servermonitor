@@ -14,28 +14,20 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef MAILER_H
-#define MAILER_H
+#ifndef GLOBALUTILS_H
+#define GLOBALUTILS_H
 
-#include <stdio.h> //needed for popen and FILE handle
 #include <string>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/thread/mutex.hpp>
-#include "smconfig.h"
-#include "logger.h"
+#include <sstream>
 
 using namespace std;
 
-class Mailer
+template <typename T>
+string toString(T t)
 {
-public:
-    Mailer(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log);
-    bool sendmail(const string &subject, const string &message);
-private:
-    boost::shared_ptr<SMConfig> cfg;
-    boost::shared_ptr<Logger> log;
-    boost::shared_ptr<boost::mutex> mtx;
-};
+    ostringstream os;
+    os << t;
+    return os.str();
+}
 
-#endif // MAILER_H
+#endif // GLOBALUTILS_H

@@ -17,19 +17,18 @@
 #ifndef CPUWATCH_H
 #define CPUWATCH_H
 
-#include <sstream>
-#include "config.h"
-#include "logger.h"
 #include "procwatch.h"
 
-class CPUWatch : public ProcWatch
+class CPUWatch : public Observer
 {
 public:
-    CPUWatch(boost::shared_ptr<Config> cfg, boost::shared_ptr<Logger> log);
+    CPUWatch(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log);
     void queryCPUProc();
 
 private:
     vector<string> cpuLoad;
+    float cpuAvgLoad5;
+    float cpuAvgLoad15;
 
     void handleStreamData(vector<string> &v);
     void checkStreamData();

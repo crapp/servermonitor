@@ -31,22 +31,25 @@
 #include <boost/make_shared.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/thread.hpp>
-#include "config.h"
+#include "smconfig.h"
 #include "logger.h"
+#include "globalutils.h"
 
-class ProcWatch
+class Observer
 {
 public:
-    ProcWatch();
-    virtual ~ProcWatch();
-    void procWatchThreadLoop();
+    Observer();
+    virtual ~Observer();
+    void procFSThreadLoop();
 
 protected:
     bool watch;
     bool foundSomething;
     int msToWait;
     int threadID;
-    boost::shared_ptr<Config> cfg;
+    int nextMailAfter;
+
+    boost::shared_ptr<SMConfig> cfg;
     boost::shared_ptr<Logger> log;
     boost::filesystem::ifstream procStream;
     boost::posix_time::ptime ptimeLastDetection;

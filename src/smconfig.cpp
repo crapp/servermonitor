@@ -18,4 +18,57 @@
 
 SMConfig::SMConfig()
 {
+    this->configFile = "../../src/config/config.xml";
+    pugi::xml_parse_result result = this->cfgdoc.load_file(this->configFile.c_str());
+    if (!result)
+    {
+        //TODO: Log error and quit application
+    }
+}
+
+string SMConfig::getConfigValue(const string &xpath)
+{
+    try {
+        pugi::xpath_node node = this->cfgdoc.select_single_node(xpath.c_str());
+        if (node != 0)
+        {
+            pugi::xml_text t = node.node().text();
+            cout << t.as_string() << endl;
+            return t.as_string();
+        }
+    }
+    catch (pugi::xpath_exception &ex)
+    {
+        //TODO: Patch this to the logger and end application
+        cout << ex.result() << endl;
+        cout << ex.what() << endl;
+    }
+    return "";
+}
+
+map< string, vector<string> > SMConfig::getConfigMap(const string &xpath)
+{
+    map< string, vector<string> > appMap;
+    try {
+        pugi::xpath_node_set nodes = this->cfgdoc.select_nodes(xpath.c_str());
+        if (nodes.size() > 0)
+        {
+            //TODO: How can we loop over a pugi::xpath_node_set with BOOST_FOREACH
+            for (pugi::xpath_node_set::const_iterator it = nodes.begin(); it != nodes.end(); it++)
+            {
+                pugi::xpath_node nd = *it;
+                vector<string> attribs;
+                attribs.push_back(nd.node().attribute("name").value());
+                attribs.push_back(nd.node().attribute("restartcmd").value());
+                appMap.insert(pair< string, vector<string> >(attribs[0], attribs));
+            }
+        }
+    }
+    catch (pugi::xpath_exception &ex)
+    {
+        //TODO: Patch this to the logger and end application
+        cout << ex.result() << endl;
+        cout << ex.what() << endl;
+    }
+    return appMap;
 }

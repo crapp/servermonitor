@@ -29,19 +29,20 @@
 #include <boost/make_shared.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
-#include "config.h"
+#include "smconfig.h"
 #include "logger.h"
 #include "memorywatch.h"
 #include "cpuwatch.h"
+#include "globalutils.h"
 
 class MonitorWorker
 {
 public:
-    MonitorWorker(boost::shared_ptr<Config> cfg, boost::shared_ptr<Logger> log);
+    MonitorWorker(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log);
     ~MonitorWorker();
     int startMonitoring();
 private:
-    boost::shared_ptr<Config> cfg;
+    boost::shared_ptr<SMConfig> cfg;
     boost::shared_ptr<Logger> log;
     boost::shared_ptr<MemoryWatch> mwatch;
     boost::shared_ptr<CPUWatch> cpuwatch;
@@ -49,6 +50,7 @@ private:
     boost::shared_ptr<boost::thread> cpuwatchThread;
 
     int threadID;
+    string fifopath;
 
     void ipcNamedPipe();
     void stopService();

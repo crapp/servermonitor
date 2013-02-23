@@ -1,6 +1,6 @@
 #include "logger.h"
 
-Logger::Logger(boost::shared_ptr<Config> cfg) : cfg(cfg)
+Logger::Logger(boost::shared_ptr<SMConfig> cfg) : cfg(cfg)
 {
     this->mtx = boost::make_shared<boost::mutex>();
 }

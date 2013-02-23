@@ -16,15 +16,15 @@
 
 #include "procwatch.h"
 
-ProcWatch::ProcWatch()
+Observer::Observer()
 {
 }
 
-ProcWatch::~ProcWatch()
+Observer::~Observer()
 {
 }
 
-void ProcWatch::procWatchThreadLoop()
+void Observer::procFSThreadLoop()
 {
     try
     {
@@ -44,7 +44,6 @@ void ProcWatch::procWatchThreadLoop()
                     {
                         //do a regex split on all whitespaces and not only single ones
                         boost::algorithm::split_regex(v, line, boost::regex(" +"));
-                        //erase last colon from key
                     }
                     //TODO: we need to catch specific boost exceptions
                     catch(exception &ex)
@@ -72,13 +71,13 @@ void ProcWatch::procWatchThreadLoop()
     }
 }
 
-bool ProcWatch::checkLastDetection()
+bool Observer::checkLastDetection()
 {
     if (this->foundSomething)
     {
         boost::posix_time::ptime ptimeNow = boost::posix_time::second_clock::universal_time();
         boost::posix_time::time_duration td = ptimeNow - this->ptimeLastDetection;
-        if (td.total_seconds() < this->cfg->nextMailAfter)
+        if (td.total_seconds() < this->nextMailAfter)
         {
             return false;
         }

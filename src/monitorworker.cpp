@@ -16,10 +16,11 @@
 
 #include "monitorworker.h"
 
-MonitorWorker::MonitorWorker(boost::shared_ptr<Config> cfg, boost::shared_ptr<Logger> log) :
+MonitorWorker::MonitorWorker(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log) :
     cfg(cfg), log(log)
 {
     this->threadID = 0;
+    this->fifopath = this->cfg->getConfigValue("/config/common/fifoPath");
 }
 
 MonitorWorker::~MonitorWorker()
@@ -30,9 +31,9 @@ int MonitorWorker::startMonitoring()
 {
     //starting memory monitor
     this->mwatch = boost::make_shared<MemoryWatch>(this->cfg, this->log);
-    this->mwatchThread = boost::make_shared<boost::thread>(boost::bind(&MemoryWatch::procWatchThreadLoop, this->mwatch));
+    this->mwatchThread = boost::make_shared<boost::thread>(boost::bind(&MemoryWatch::procFSThreadLoop, this->mwatch));
     this->cpuwatch = boost::make_shared<CPUWatch>(this->cfg, this->log);
-    this->cpuwatchThread = boost::make_shared<boost::thread>(boost::bind(&CPUWatch::procWatchThreadLoop, this->cpuwatch));
+    this->cpuwatchThread = boost::make_shared<boost::thread>(boost::bind(&CPUWatch::procFSThreadLoop, this->cpuwatch));
     //howto start a thread in a class
     //boost::thread t1(boost::bind(&MemoryWatch::memoryWatchThread, this));
     //t1.join();
@@ -44,11 +45,11 @@ void MonitorWorker::ipcNamedPipe()
 {
     int status, fifo, res;
     int bytes_read = 0;
-    if (boost::filesystem::exists(this->cfg->fifoPath))
+    if (boost::filesystem::exists(this->fifopath))
     {
         try
         {
-            boost::filesystem::remove(this->cfg->fifoPath);
+            boost::filesystem::remove(this->fifopath);
         }
         catch(boost::filesystem::filesystem_error &ex)
         {
@@ -58,18 +59,18 @@ void MonitorWorker::ipcNamedPipe()
             this->stopService();
         }
     }
-    status = mkfifo(this->cfg->fifoPath.c_str(), 0666);
+    status = mkfifo(this->fifopath.c_str(), 0666);
     if (status != 0)
     {
         this->log->writeToLog(LVLERROR, this->threadID, "Can not create named pipe: " +
-                              this->cfg->fifoPath +  " -- Error Number: " + toString(errno));
+                              this->fifopath +  " -- Error Number: " + toString(errno));
         this->stopService();
     }
     while(1)
     {
         char buf[80];
         memset(&buf[0], 0, sizeof(buf)); //reset/initialize char array
-        fifo = open(this->cfg->fifoPath.c_str(), O_RDONLY); //this is blocking until we receive something
+        fifo = open(this->fifopath.c_str(), O_RDONLY); //this is blocking until we receive something
         string pipeString = "";
         do
         {
@@ -81,7 +82,7 @@ void MonitorWorker::ipcNamedPipe()
                 pipeString += s;
             } else if (res == -1) {
                 this->log->writeToLog(LVLERROR, this->threadID, "Can not read from named pipe: "
-                                      + this->cfg->fifoPath +  " -- Error Number: " + toString(errno));
+                                      + this->fifopath +  " -- Error Number: " + toString(errno));
             }
         } while (res > 0);
         bytes_read = 0;
@@ -99,7 +100,7 @@ void MonitorWorker::stopService()
 {
     try
     {
-        boost::filesystem::remove(this->cfg->fifoPath);
+        boost::filesystem::remove(this->fifopath);
     }
     catch(boost::filesystem::filesystem_error &ex)
     {

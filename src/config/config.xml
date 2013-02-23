@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <common>
+        <fifoPath>/tmp/servermonitor.fifo</fifoPath>        
+    </common>
+    <email>
+        <mailCommand>/usr/sbin/sendmail -t</mailCommand>
+        <mailTo>saedelaere@elkbase.localdomain</mailTo>
+        <mailFrom>root@elkbase.localdomain</mailFrom>
+        <secondsNextMail>43200</secondsNextMail>
+    </email>
+    <sysstat>
+        <cpu>
+            <processFilesystem>/proc/loadavg</processFilesystem>
+            <avg5threshold>1.5</avg5threshold>
+            <avg15threshold>1.8</avg15threshold>
+            <pollTime>60000</pollTime>
+        </cpu>
+        <memory>
+            <processFilesystem>/proc/meminfo</processFilesystem>
+            <minimumFree>100000</minimumFree>
+            <maximumSwap>0</maximumSwap>
+            <noValuesCompare>10</noValuesCompare>
+            <pollTime>1000</pollTime>
+        </memory>
+    </sysstat>
+    <applications>
+        <app name="apache2" restart="true" restartcmd="/etc/init.d/apache2 start" />
+        <app name="mysqld" restart="true" restartcmd="/etc/init.d/mysqld start" />
+        <app name="sshd" restart="true" restartcmd="/etc/init.d/ssh start" />        
+    </applications>
+</config>

@@ -1,13 +1,27 @@
 #include "memorywatch.h"
 
-MemoryWatch::MemoryWatch(boost::shared_ptr<Config> cfg, boost::shared_ptr<Logger> log)
+MemoryWatch::MemoryWatch(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log)
 {
     this->cfg = cfg;
     this->log = log;
     this->watch = true;
     this->foundSomething = false;
-    this->procStreamPath = this->cfg->memInfo;
-    this->msToWait = this->cfg->waitMemThread;
+    this->procStreamPath = this->cfg->getConfigValue("/config/sysstat/memory/processFilesystem");
+    string msToWait = this->cfg->getConfigValue("/config/sysstat/memory/pollTime");
+    if (!boost::spirit::qi::parse(msToWait.begin(), msToWait.end(), this->msToWait))
+        this->msToWait = 60000;
+    string nextMailAfter = this->cfg->getConfigValue("/config/email/secondsNextMail");
+    if (!boost::spirit::qi::parse(nextMailAfter.begin(), nextMailAfter.end(), this->nextMailAfter))
+        this->nextMailAfter = 43200; //every 12 hours
+    string minMemFree = this->cfg->getConfigValue("/config/sysstat/memory/minimumFree");
+    if (!boost::spirit::qi::parse(minMemFree.begin(), minMemFree.end(), this->minMemFree))
+        this->minMemFree = 10000;
+    string maxSwap = this->cfg->getConfigValue("/config/sysstat/memory/maximumSwap");
+    if (!boost::spirit::qi::parse(maxSwap.begin(), maxSwap.end(), maxSwap))
+        this->maxSwap = 0;
+    string noValuesToCompare = this->cfg->getConfigValue("/config/sysstat/memory/noValuesCompare");
+    if (!boost::spirit::qi::parse(noValuesToCompare.begin(), noValuesToCompare.end(), this->noValuesToCompare))
+        this->noValuesToCompare = 10;
     this->threadID = 2;
 }
 
@@ -56,7 +70,7 @@ void MemoryWatch::checkStreamData()
             this->memInfoMap.find("SwapFree") != this->memInfoMap.end())
     {
         //TODO: List size is hardcoded. Should be set in config
-        if (this->lastMemFreeValues.size() < 10)
+        if (this->lastMemFreeValues.size() < this->noValuesToCompare)
         {
             this->lastMemFreeValues.push_back(this->memInfoMap["MemFree"]);
         } else {
@@ -70,7 +84,7 @@ void MemoryWatch::checkStreamData()
             {
                 sum += f;
             }
-            if (this->memInfoMap["MemTotal"] - sum/this->lastMemFreeValues.size() < this->cfg->memMinFree)
+            if (this->memInfoMap["MemTotal"] - (sum/this->lastMemFreeValues.size()) < this->minMemFree)
             {
                 //TODO: Send E-Mail on low memory!
                 this->log->writeToLog(LVLDEBUG, this->threadID, "Not much memory left");
@@ -79,7 +93,7 @@ void MemoryWatch::checkStreamData()
             }
         }
 
-        if (this->memInfoMap["SwapTotal"] - this->memInfoMap["SwapFree"] > 0)
+        if (this->memInfoMap["SwapTotal"] - this->memInfoMap["SwapFree"] > this->maxSwap)
         {
             //TODO: Send E-Mail on swap usage!
             this->log->writeToLog(LVLDEBUG, this->threadID, "System is swapping :/");
