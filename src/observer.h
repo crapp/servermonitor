@@ -14,17 +14,17 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef PROCWATCH_H
-#define PROCWATCH_H
+#ifndef OBSERVER_H
+#define OBSERVER_H
 
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <string>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string_regex.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/filesystem/fstream.hpp>
-#include <boost/filesystem/path.hpp>
 #include <boost/foreach.hpp>
 #include <boost/regex.hpp>
 #include <boost/shared_ptr.hpp>
@@ -51,14 +51,15 @@ protected:
 
     boost::shared_ptr<SMConfig> cfg;
     boost::shared_ptr<Logger> log;
-    boost::filesystem::ifstream procStream;
+    ifstream procStream;
     boost::posix_time::ptime ptimeLastDetection;
-    boost::filesystem::path procStreamPath;
+    string procStreamPath;
 
     bool checkLastDetection();
+    virtual bool getData() = 0;
     virtual void handleStreamData(vector<string> &v) = 0;
     virtual void checkStreamData() = 0;
 
 };
 
-#endif // PROCWATCH_H
+#endif // OBSERVER_H

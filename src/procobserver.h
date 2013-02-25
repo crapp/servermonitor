@@ -14,25 +14,17 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#ifndef PROCOBSERVER_H
+#define PROCOBSERVER_H
 
-#include "logger.h"
+#include "observer.h"
 
-Logger::Logger(boost::shared_ptr<SMConfig> cfg) : cfg(cfg)
+class ProcObserver : public Observer
 {
-    this->mtx = boost::make_shared<boost::mutex>();
-}
+public:
+    ProcObserver();
+private:
+    bool getData();
+};
 
-void Logger::writeToLog(const int &debugLevel, const int &threadID, const string &msg)
-{
-    //boost::lock_guard<boost::mutex> lockGuard(this->mtx);
-    this->mtx->lock();
-    if (debugLevel == LVLDEBUG)
-    {
-        cout << "Thread: " << threadID << " -- " << msg << endl;
-    }
-    if (debugLevel == LVLERROR)
-    {
-        cerr << "Thread: " << threadID << " -- " << msg << endl;
-    }
-    this->mtx->unlock();
-}
+#endif // PROCOBSERVER_H

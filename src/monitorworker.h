@@ -31,9 +31,9 @@
 #include <boost/algorithm/string.hpp>
 #include "smconfig.h"
 #include "logger.h"
-#include "memorywatch.h"
-#include "cpuwatch.h"
-#include "globalutils.h"
+#include "memoryobserver.h"
+#include "cpuobserver.h"
+#include "appobserver.h"
 
 class MonitorWorker
 {
@@ -44,10 +44,12 @@ public:
 private:
     boost::shared_ptr<SMConfig> cfg;
     boost::shared_ptr<Logger> log;
-    boost::shared_ptr<MemoryWatch> mwatch;
-    boost::shared_ptr<CPUWatch> cpuwatch;
+    boost::shared_ptr<MemoryObserver> mwatch;
+    boost::shared_ptr<CPUObserver> cpuwatch;
+    boost::shared_ptr<AppObserver> appwatch;
     boost::shared_ptr<boost::thread> mwatchThread;
     boost::shared_ptr<boost::thread> cpuwatchThread;
+    boost::shared_ptr<boost::thread> appwatchThread;
 
     int threadID;
     string fifopath;

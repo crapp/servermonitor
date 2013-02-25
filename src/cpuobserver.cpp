@@ -14,15 +14,17 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "cpuwatch.h"
+#include "cpuobserver.h"
 
-CPUWatch::CPUWatch(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log)
+CPUObserver::CPUObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log)
 {
     this->watch = true;
     this->cfg = cfg;
     this->log = log;
     this->foundSomething = false;
     this->procStreamPath = this->cfg->getConfigValue("/config/sysstat/cpu/processFilesystem");
+    if (this->procStreamPath == "")
+        this->procStreamPath = "/proc/loadavg";
     string msToWait = this->cfg->getConfigValue("/config/sysstat/cpu/pollTime");
     if (!boost::spirit::qi::parse(msToWait.begin(), msToWait.end(), this->msToWait))
         this->msToWait = 1000;
@@ -38,16 +40,16 @@ CPUWatch::CPUWatch(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> lo
     this->threadID = 1;
 }
 
-void CPUWatch::queryCPUProc()
+void CPUObserver::queryCPUProc()
 {
 }
 
-void CPUWatch::handleStreamData(vector<string> &v)
+void CPUObserver::handleStreamData(vector<string> &v)
 {
     this->cpuLoad = v;
 }
 
-void CPUWatch::checkStreamData()
+void CPUObserver::checkStreamData()
 {
     if (this->checkLastDetection() == false)
     {

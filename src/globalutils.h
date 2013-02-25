@@ -19,8 +19,13 @@
 
 #include <string>
 #include <sstream>
+#include <stdio.h>
 
 using namespace std;
+
+/**
+ *toString template
+ */
 
 template <typename T>
 string toString(T t)
@@ -28,6 +33,37 @@ string toString(T t)
     ostringstream os;
     os << t;
     return os.str();
+}
+
+/**
+ * @brief executes a shell command and returns it's ouput as string
+ * @param cmd -> The command to execute
+ * @return returns ERROR when something failed, otherwise a string with the command
+ * ouput will be returned.
+ */
+inline string execSysCmd(const char* cmd) {
+    FILE *pipe = popen(cmd, "r");
+    if (!pipe)
+        return "ERROR";
+    char buffer[128];
+    string result = "";
+    while(!feof(pipe)) {
+        if(fgets(buffer, 128, pipe) != NULL)
+        {
+            try
+            {
+                result += buffer;
+            }
+            catch (...)
+            {
+                return "ERROR";
+            }
+        }
+    }
+    int retClose = pclose(pipe);
+    if (retClose == -1)
+        return "ERROR";
+    return result;
 }
 
 #endif // GLOBALUTILS_H

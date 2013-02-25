@@ -14,25 +14,27 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef CPUWATCH_H
-#define CPUWATCH_H
 
-#include "procwatch.h"
+#ifndef MEMORYOBSERVER_H
+#define MEMORYOBSERVER_H
 
-class CPUWatch : public Observer
+#include <list>
+#include "procobserver.h"
+
+class MemoryObserver : public ProcObserver
 {
 public:
-    CPUWatch(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log);
-    void queryCPUProc();
-
+    MemoryObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log);
+    void queryMemProc();
 private:
-    vector<string> cpuLoad;
-    float cpuAvgLoad5;
-    float cpuAvgLoad15;
+    map<string, float> memInfoMap;
+    list<float> lastMemFreeValues;
+    int minMemFree;
+    int maxSwap;
+    uint noValuesToCompare;
 
     void handleStreamData(vector<string> &v);
     void checkStreamData();
-    //ps -eo pcpu,pid,user,args | sort -r -k1
 };
 
-#endif // CPUWATCH_H
+#endif // MEMORYOBSERVER_H

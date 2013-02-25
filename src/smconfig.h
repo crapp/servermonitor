@@ -27,6 +27,12 @@
 
 using namespace std;
 
+/**
+ * @brief The SMConfig class provides access to the xml based configuration via
+ * xPath querries
+ *
+ * @author Christian Rapp crapp
+ */
 class SMConfig
 {
 public:

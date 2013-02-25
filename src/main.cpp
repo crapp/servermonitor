@@ -19,7 +19,6 @@
 #include <sstream>
 #include <boost/shared_ptr.hpp>
 #include <boost/filesystem/fstream.hpp>
-#include "config.h"
 #include "smconfig.h"
 #include "logger.h"
 #include "monitorworker.h"

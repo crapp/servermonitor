@@ -29,23 +29,27 @@ endif(APPLE)
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/cpuwatch.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/appobserver.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/cpuobserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/logger.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/mailer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/memorywatch.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/memoryobserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/monitorworker.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/procwatch.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/observer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/procobserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/smconfig.cpp
 )
 
 set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/cpuwatch.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/appobserver.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/cpuobserver.h
     ${CMAKE_CURRENT_SOURCE_DIR}/globalutils.h
     ${CMAKE_CURRENT_SOURCE_DIR}/logger.h
     ${CMAKE_CURRENT_SOURCE_DIR}/mailer.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/memorywatch.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/memoryobserver.h
     ${CMAKE_CURRENT_SOURCE_DIR}/monitorworker.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/procwatch.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/observer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/procobserver.cpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/smconfig.h
 )
 

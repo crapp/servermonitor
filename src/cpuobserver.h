@@ -14,25 +14,25 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#ifndef CPUOBSERVER_H
+#define CPUOBSERVER_H
 
-#include "logger.h"
+#include "procobserver.h"
 
-Logger::Logger(boost::shared_ptr<SMConfig> cfg) : cfg(cfg)
+class CPUObserver : public ProcObserver
 {
-    this->mtx = boost::make_shared<boost::mutex>();
-}
+public:
+    CPUObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log);
+    void queryCPUProc();
 
-void Logger::writeToLog(const int &debugLevel, const int &threadID, const string &msg)
-{
-    //boost::lock_guard<boost::mutex> lockGuard(this->mtx);
-    this->mtx->lock();
-    if (debugLevel == LVLDEBUG)
-    {
-        cout << "Thread: " << threadID << " -- " << msg << endl;
-    }
-    if (debugLevel == LVLERROR)
-    {
-        cerr << "Thread: " << threadID << " -- " << msg << endl;
-    }
-    this->mtx->unlock();
-}
+private:
+    vector<string> cpuLoad;
+    float cpuAvgLoad5;
+    float cpuAvgLoad15;
+
+    void handleStreamData(vector<string> &v);
+    void checkStreamData();
+    //ps -eo pcpu,pid,user,args | sort -r -k1
+};
+
+#endif // CPUOBSERVER_H

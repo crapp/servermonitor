@@ -1,6 +1,23 @@
-#include "memorywatch.h"
+//  ServerMonitor is a service to monitor a linux system
+//  Copyright (C) 2013  Christian Rapp
+//
+//  This program is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-MemoryWatch::MemoryWatch(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log)
+
+#include "memoryobserver.h"
+
+MemoryObserver::MemoryObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log)
 {
     this->cfg = cfg;
     this->log = log;
@@ -25,11 +42,11 @@ MemoryWatch::MemoryWatch(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logg
     this->threadID = 2;
 }
 
-void MemoryWatch::queryMemProc()
+void MemoryObserver::queryMemProc()
 {
 }
 
-void MemoryWatch::handleStreamData(vector<string> &v)
+void MemoryObserver::handleStreamData(vector<string> &v)
 {
     if (v.size() >= 2)
     {
@@ -57,7 +74,7 @@ void MemoryWatch::handleStreamData(vector<string> &v)
     }
 }
 
-void MemoryWatch::checkStreamData()
+void MemoryObserver::checkStreamData()
 {
     if (this->checkLastDetection() == false)
     {

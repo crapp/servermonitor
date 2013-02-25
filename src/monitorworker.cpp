@@ -30,10 +30,12 @@ MonitorWorker::~MonitorWorker()
 int MonitorWorker::startMonitoring()
 {
     //starting memory monitor
-    this->mwatch = boost::make_shared<MemoryWatch>(this->cfg, this->log);
-    this->mwatchThread = boost::make_shared<boost::thread>(boost::bind(&MemoryWatch::procFSThreadLoop, this->mwatch));
-    this->cpuwatch = boost::make_shared<CPUWatch>(this->cfg, this->log);
-    this->cpuwatchThread = boost::make_shared<boost::thread>(boost::bind(&CPUWatch::procFSThreadLoop, this->cpuwatch));
+    this->mwatch = boost::make_shared<MemoryObserver>(this->cfg, this->log);
+    this->mwatchThread = boost::make_shared<boost::thread>(boost::bind(&MemoryObserver::procFSThreadLoop, this->mwatch));
+    this->cpuwatch = boost::make_shared<CPUObserver>(this->cfg, this->log);
+    this->cpuwatchThread = boost::make_shared<boost::thread>(boost::bind(&CPUObserver::procFSThreadLoop, this->cpuwatch));
+    this->appwatch = boost::make_shared<AppObserver>(this->cfg, this->log);
+    this->appwatchThread = boost::make_shared<boost::thread>(boost::bind(&AppObserver::procFSThreadLoop, this->appwatch));
     //howto start a thread in a class
     //boost::thread t1(boost::bind(&MemoryWatch::memoryWatchThread, this));
     //t1.join();
@@ -109,5 +111,6 @@ void MonitorWorker::stopService()
     }
     this->mwatchThread->interrupt();
     this->cpuwatchThread->interrupt();
+    this->appwatchThread->interrupt();
 }
 

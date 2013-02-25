@@ -14,25 +14,21 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#ifndef APPOBSERVER_H
+#define APPOBSERVER_H
 
-#include "logger.h"
+#include <map>
+#include "observer.h"
 
-Logger::Logger(boost::shared_ptr<SMConfig> cfg) : cfg(cfg)
+class AppObserver : public Observer
 {
-    this->mtx = boost::make_shared<boost::mutex>();
-}
+public:
+    AppObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log);
+    bool getData();
+    void handleStreamData(vector<string> &v);
+    void checkStreamData();
+private:
+    int threadID;
+};
 
-void Logger::writeToLog(const int &debugLevel, const int &threadID, const string &msg)
-{
-    //boost::lock_guard<boost::mutex> lockGuard(this->mtx);
-    this->mtx->lock();
-    if (debugLevel == LVLDEBUG)
-    {
-        cout << "Thread: " << threadID << " -- " << msg << endl;
-    }
-    if (debugLevel == LVLERROR)
-    {
-        cerr << "Thread: " << threadID << " -- " << msg << endl;
-    }
-    this->mtx->unlock();
-}
+#endif // APPOBSERVER_H

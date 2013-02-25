@@ -25,8 +25,11 @@
         </memory>
     </sysstat>
     <applications>
-        <app name="apache2" restart="true" restartcmd="/etc/init.d/apache2 start" />
-        <app name="mysqld" restart="true" restartcmd="/etc/init.d/mysqld start" />
-        <app name="sshd" restart="true" restartcmd="/etc/init.d/ssh start" />        
+        <pollTime>1000</pollTime>        
+        <app name="postfix" restart="true" check="true" restartcmd="/etc/init.d/postfix start" /> 
+        <app name="ntpd" restart="false" check="true" restartcmd="/etc/init.d/ntpd start" />  
+        <app name="apache2" restart="true" check="true" restartcmd="/etc/init.d/apache2 start" />
+        <app name="mysqld" restart="true" check="false" restartcmd="/etc/init.d/mysqld start" />
+        <app name="sshd" restart="true" check="false" restartcmd="/etc/init.d/ssh start" />        
     </applications>
 </config>

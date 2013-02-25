@@ -33,7 +33,6 @@ string SMConfig::getConfigValue(const string &xpath)
         if (node != 0)
         {
             pugi::xml_text t = node.node().text();
-            cout << t.as_string() << endl;
             return t.as_string();
         }
     }
@@ -59,6 +58,8 @@ map< string, vector<string> > SMConfig::getConfigMap(const string &xpath)
                 pugi::xpath_node nd = *it;
                 vector<string> attribs;
                 attribs.push_back(nd.node().attribute("name").value());
+                attribs.push_back(nd.node().attribute("restart").value());
+                attribs.push_back(nd.node().attribute("check").value());
                 attribs.push_back(nd.node().attribute("restartcmd").value());
                 appMap.insert(pair< string, vector<string> >(attribs[0], attribs));
             }
