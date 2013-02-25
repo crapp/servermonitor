@@ -29,6 +29,7 @@ AppObserver::AppObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logg
     string nextMailAfter = this->cfg->getConfigValue("/config/email/secondsNextMail");
     if (!boost::spirit::qi::parse(nextMailAfter.begin(), nextMailAfter.end(), this->nextMailAfter))
         this->nextMailAfter = 43200; //every 12 hours
+    this->log->writeToLog(LVLDEBUG, this->threadID, "AppObserver thread is starting");
 }
 
 bool AppObserver::getData()
@@ -39,10 +40,10 @@ bool AppObserver::getData()
     {
         if (AppAttrPair.second[2] == "false")
             continue;
-        this->log->writeToLog(LVLDEBUG, this->threadID, "Checking process " + AppAttrPair.first);
+        //this->log->writeToLog(LVLDEBUG, this->threadID, "Checking process " + AppAttrPair.first);
         string cmd = "ps -C " + AppAttrPair.first + " 2>&1";
         string psOut = execSysCmd(cmd.c_str());
-        this->log->writeToLog(LVLDEBUG, this->threadID, "psOut: " + psOut);
+        //this->log->writeToLog(LVLDEBUG, this->threadID, "psOut: " + psOut);
         if(psOut.compare("ERROR") == 0) //TODO: Write an E-Mail, should we really quit the loop?
             return false;
         vector<string> lines;

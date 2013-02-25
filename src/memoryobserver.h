@@ -27,8 +27,8 @@ public:
     MemoryObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log);
     void queryMemProc();
 private:
-    map<string, float> memInfoMap;
-    list<float> lastMemFreeValues;
+    boost::shared_ptr< map<string, float> > memInfoMap;
+    boost::shared_ptr< list<float> > lastMemFreeValues;
     int minMemFree;
     int maxSwap;
     uint noValuesToCompare;

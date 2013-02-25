@@ -38,6 +38,7 @@ CPUObserver::CPUObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logg
     if (!boost::spirit::qi::parse(cpuAvgLoad15.begin(), cpuAvgLoad15.end(), this->cpuAvgLoad15))
         this->cpuAvgLoad15 = 0.8;
     this->threadID = 1;
+    this->log->writeToLog(LVLDEBUG, this->threadID, "CPUObserver thread is starting");
 }
 
 void CPUObserver::queryCPUProc()

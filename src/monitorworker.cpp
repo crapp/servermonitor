@@ -29,7 +29,7 @@ MonitorWorker::~MonitorWorker()
 
 int MonitorWorker::startMonitoring()
 {
-    //starting memory monitor
+    //starting memory, cpu and app observer //TODO: make this configurable!
     this->mwatch = boost::make_shared<MemoryObserver>(this->cfg, this->log);
     this->mwatchThread = boost::make_shared<boost::thread>(boost::bind(&MemoryObserver::procFSThreadLoop, this->mwatch));
     this->cpuwatch = boost::make_shared<CPUObserver>(this->cfg, this->log);
@@ -112,5 +112,6 @@ void MonitorWorker::stopService()
     this->mwatchThread->interrupt();
     this->cpuwatchThread->interrupt();
     this->appwatchThread->interrupt();
+    boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
 }
 

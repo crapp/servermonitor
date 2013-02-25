@@ -34,12 +34,15 @@ MemoryObserver::MemoryObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_pt
     if (!boost::spirit::qi::parse(minMemFree.begin(), minMemFree.end(), this->minMemFree))
         this->minMemFree = 10000;
     string maxSwap = this->cfg->getConfigValue("/config/sysstat/memory/maximumSwap");
-    if (!boost::spirit::qi::parse(maxSwap.begin(), maxSwap.end(), maxSwap))
+    if (!boost::spirit::qi::parse(maxSwap.begin(), maxSwap.end(), this->maxSwap))
         this->maxSwap = 0;
     string noValuesToCompare = this->cfg->getConfigValue("/config/sysstat/memory/noValuesCompare");
     if (!boost::spirit::qi::parse(noValuesToCompare.begin(), noValuesToCompare.end(), this->noValuesToCompare))
         this->noValuesToCompare = 10;
     this->threadID = 2;
+    this->memInfoMap = boost::make_shared< map<string, float> >();
+    this->lastMemFreeValues = boost::make_shared< list<float> >();
+    this->log->writeToLog(LVLDEBUG, this->threadID, "MemoryObserver thread is starting");
 }
 
 void MemoryObserver::queryMemProc()
@@ -57,7 +60,7 @@ void MemoryObserver::handleStreamData(vector<string> &v)
             float f;
             bool cast = boost::spirit::qi::parse(v[1].begin(), v[1].end(), f);
             if (cast)
-                this->memInfoMap.insert(pair<string, float>(v[0], f));
+                this->memInfoMap->insert(pair<string, float>(v[0], f));
         }
         catch(exception &ex)
         {
@@ -78,30 +81,32 @@ void MemoryObserver::checkStreamData()
 {
     if (this->checkLastDetection() == false)
     {
-        this->memInfoMap.clear();
+        this->memInfoMap->clear();
         return;
     }
-    if (this->memInfoMap.find("MemTotal") != this->memInfoMap.end() &&
-            this->memInfoMap.find("MemFree") != this->memInfoMap.end() &&
-            this->memInfoMap.find("SwapTotal") != this->memInfoMap.end() &&
-            this->memInfoMap.find("SwapFree") != this->memInfoMap.end())
+    if (!this->memInfoMap->size() > 0)
+            return;
+    if (this->memInfoMap->find("MemTotal") != this->memInfoMap->end() &&
+            this->memInfoMap->find("MemFree") != this->memInfoMap->end() &&
+            this->memInfoMap->find("SwapTotal") != this->memInfoMap->end() &&
+            this->memInfoMap->find("SwapFree") != this->memInfoMap->end())
     {
         //TODO: List size is hardcoded. Should be set in config
-        if (this->lastMemFreeValues.size() < this->noValuesToCompare)
+        if (this->lastMemFreeValues->size() < this->noValuesToCompare)
         {
-            this->lastMemFreeValues.push_back(this->memInfoMap["MemFree"]);
+            this->lastMemFreeValues->push_back((*this->memInfoMap)["MemFree"]);
         } else {
-            this->lastMemFreeValues.erase(this->lastMemFreeValues.begin());
-            this->lastMemFreeValues.push_back(this->memInfoMap["MemFree"]);
+            this->lastMemFreeValues->erase(this->lastMemFreeValues->begin());
+            this->lastMemFreeValues->push_back((*this->memInfoMap)["MemFree"]);
             /*NOTE: we could hold a sum as a class member and update it everytime the vector gets updated.
-             *      No more need for foreach here. But ok the list is small...
+             *      No more need for foreach here. But ok the list is usually small...
              */
-            float sum;
-            BOOST_FOREACH(const float &f, this->lastMemFreeValues)
+            float sum = 0;
+            BOOST_FOREACH(const float &f, (*this->lastMemFreeValues))
             {
                 sum += f;
             }
-            if (this->memInfoMap["MemTotal"] - (sum/this->lastMemFreeValues.size()) < this->minMemFree)
+            if (((*this->memInfoMap)["MemTotal"] - (sum/this->lastMemFreeValues->size())) < this->minMemFree)
             {
                 //TODO: Send E-Mail on low memory!
                 this->log->writeToLog(LVLDEBUG, this->threadID, "Not much memory left");
@@ -110,7 +115,7 @@ void MemoryObserver::checkStreamData()
             }
         }
 
-        if (this->memInfoMap["SwapTotal"] - this->memInfoMap["SwapFree"] > this->maxSwap)
+        if (((*this->memInfoMap)["SwapTotal"] - (*this->memInfoMap)["SwapFree"]) > this->maxSwap)
         {
             //TODO: Send E-Mail on swap usage!
             this->log->writeToLog(LVLDEBUG, this->threadID, "System is swapping :/");
@@ -120,5 +125,5 @@ void MemoryObserver::checkStreamData()
     } else {
         this->log->writeToLog(LVLERROR, this->threadID, "Fuck the duck not in memInfoMap :/");
     }
-    this->memInfoMap.clear();
+    this->memInfoMap->clear();
 }
