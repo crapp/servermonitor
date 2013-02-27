@@ -25,16 +25,20 @@ class MemoryObserver : public ProcObserver
 {
 public:
     MemoryObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log);
-    void queryMemProc();
 private:
-    boost::shared_ptr< map<string, float> > memInfoMap;
-    boost::shared_ptr< list<float> > lastMemFreeValues;
+    //boost::shared_ptr< map<string, float> > memInfoMap;
+    map<string, float> memInfoMap;
+    //boost::shared_ptr< list<float> > lastMemFreeValues;
+    list<float> lastMemFreeValues;
     int minMemFree;
     int maxSwap;
     uint noValuesToCompare;
 
     void handleStreamData(vector<string> &v);
     void checkStreamData();
+    void initLastDetection();
+    bool checkMemory();
+    bool checkSwap();
 };
 
 #endif // MEMORYOBSERVER_H

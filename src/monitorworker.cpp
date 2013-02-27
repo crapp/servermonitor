@@ -29,13 +29,26 @@ MonitorWorker::~MonitorWorker()
 
 int MonitorWorker::startMonitoring()
 {
-    //starting memory, cpu and app observer //TODO: make this configurable!
-    this->mwatch = boost::make_shared<MemoryObserver>(this->cfg, this->log);
-    this->mwatchThread = boost::make_shared<boost::thread>(boost::bind(&MemoryObserver::procFSThreadLoop, this->mwatch));
-    this->cpuwatch = boost::make_shared<CPUObserver>(this->cfg, this->log);
-    this->cpuwatchThread = boost::make_shared<boost::thread>(boost::bind(&CPUObserver::procFSThreadLoop, this->cpuwatch));
-    this->appwatch = boost::make_shared<AppObserver>(this->cfg, this->log);
-    this->appwatchThread = boost::make_shared<boost::thread>(boost::bind(&AppObserver::procFSThreadLoop, this->appwatch));
+    //starting cpu, memory and app observer
+    if (this->cfg->getConfigValue("/config/sysstat/cpu/check") == "true")
+    {
+        this->cpuwatch = boost::make_shared<CPUObserver>(this->cfg, this->log);
+        this->cpuwatchThread = boost::make_shared<boost::thread>(boost::bind(&CPUObserver::threadLoop, this->cpuwatch));
+        noOfActiveThreads++;
+    }
+    if (this->cfg->getConfigValue("/config/sysstat/memory/check") == "true")
+    {
+        this->mwatch = boost::make_shared<MemoryObserver>(this->cfg, this->log);
+        this->mwatchThread = boost::make_shared<boost::thread>(boost::bind(&MemoryObserver::threadLoop, this->mwatch));
+        noOfActiveThreads++;
+    }
+    if (this->cfg->getConfigValue("/config/applications/check") == "true")
+    {
+        this->appwatch = boost::make_shared<AppObserver>(this->cfg, this->log);
+        this->appwatchThread = boost::make_shared<boost::thread>(boost::bind(&AppObserver::threadLoop, this->appwatch));
+        noOfActiveThreads++;
+    }
+    log->writeToLog(LVLDEBUG, 0, "NoOfActiveThreads: " + toString(noOfActiveThreads));
     //howto start a thread in a class
     //boost::thread t1(boost::bind(&MemoryWatch::memoryWatchThread, this));
     //t1.join();
@@ -109,9 +122,23 @@ void MonitorWorker::stopService()
         string s(ex.what());
         this->log->writeToLog(LVLERROR, this->threadID, "Can not delete existing named pipe: " + s);
     }
-    this->mwatchThread->interrupt();
-    this->cpuwatchThread->interrupt();
-    this->appwatchThread->interrupt();
-    boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+    if (this->cpuwatchThread != 0)
+    {
+        this->cpuwatchThread->interrupt();
+        if (this->cpuwatchThread->joinable())
+            this->cpuwatchThread->join();
+    }
+    if (this->mwatchThread != 0)
+    {
+        this->mwatchThread->interrupt();
+        if (this->mwatchThread->joinable())
+            this->mwatchThread->join();
+    }
+    if (this->appwatchThread != 0)
+    {
+        this->appwatchThread->interrupt();
+        if (this->appwatchThread->joinable())
+            this->appwatchThread->join();
+    }
 }
 

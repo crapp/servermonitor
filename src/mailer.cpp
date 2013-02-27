@@ -19,13 +19,15 @@
 Mailer::Mailer(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log) :
     cfg(cfg), log(log)
 {
-    this->mtx = boost::make_shared<boost::mutex>();
 }
+
+//define static mutex
+boost::mutex Mailer::mtx;
 
 bool Mailer::sendmail(const string &subject, const string &message) {
 
     //make this email sender thread safe with a simple lock
-    this->mtx->lock();
+    boost::lock_guard<boost::mutex> lockGuard(Mailer::mtx);
     bool success = false;
 
     try {
@@ -44,6 +46,5 @@ bool Mailer::sendmail(const string &subject, const string &message) {
     } catch (...) {
         this->log->writeToLog(LVLERROR, -1, "Can not send email");
     }
-    this->mtx->unlock();
     return success;
 }

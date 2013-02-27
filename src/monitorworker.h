@@ -34,6 +34,7 @@
 #include "memoryobserver.h"
 #include "cpuobserver.h"
 #include "appobserver.h"
+#include "globalutils.h"
 
 class MonitorWorker
 {

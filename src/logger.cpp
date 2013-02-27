@@ -19,20 +19,21 @@
 
 Logger::Logger(boost::shared_ptr<SMConfig> cfg) : cfg(cfg)
 {
-    this->mtx = boost::make_shared<boost::mutex>();
 }
+
+//define static mutex
+boost::mutex Logger::mtx;
 
 void Logger::writeToLog(const int &debugLevel, const int &threadID, const string &msg)
 {
-    //boost::lock_guard<boost::mutex> lockGuard(this->mtx);
-    this->mtx->lock();
+    boost::lock_guard<boost::mutex> lockGuard(Logger::mtx);
+    boost::posix_time::ptime dt = boost::posix_time::microsec_clock::local_time();
     if (debugLevel == LVLDEBUG)
     {
-        cout << "Thread: " << threadID << " -- " << msg << endl;
+        cout << boost::posix_time::to_simple_string(dt) << ": " << "Thread: " << threadID << " sysID: " << boost::this_thread::get_id() << " -- " << msg << endl;
     }
     if (debugLevel == LVLERROR)
     {
-        cerr << "Thread: " << threadID << " -- " << msg << endl;
+        cerr << boost::posix_time::to_simple_string(dt) << ": " << "Thread: " << threadID << " sysID: " << boost::this_thread::get_id() << " -- " << msg << endl;
     }
-    this->mtx->unlock();
 }

@@ -21,6 +21,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <map>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string_regex.hpp>
@@ -40,11 +41,10 @@ class Observer
 public:
     Observer();
     virtual ~Observer();
-    void procFSThreadLoop();
+    void threadLoop();
 
 protected:
     bool watch;
-    bool foundSomething;
     int msToWait;
     int threadID;
     int nextMailAfter;
@@ -52,13 +52,14 @@ protected:
     boost::shared_ptr<SMConfig> cfg;
     boost::shared_ptr<Logger> log;
     ifstream procStream;
-    boost::posix_time::ptime ptimeLastDetection;
+    map<string, boost::posix_time::ptime> mapLastDetection;
     string procStreamPath;
 
-    bool checkLastDetection();
+    bool checkTimeoutMail(const boost::posix_time::ptime &pt);
     virtual bool getData() = 0;
     virtual void handleStreamData(vector<string> &v) = 0;
     virtual void checkStreamData() = 0;
+    virtual void initLastDetection() = 0;
 
 };
 

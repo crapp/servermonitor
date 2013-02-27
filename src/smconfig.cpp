@@ -18,7 +18,12 @@
 
 SMConfig::SMConfig()
 {
-    this->configFile = "../../src/config/config.xml";
+    if (DEVELOPMENT == 1)
+    {
+        this->configFile = "../../src/config/config.xml";
+    } else {
+        this->configFile = "/etc/serverMonitor/config.xml";
+    }
     pugi::xml_parse_result result = this->cfgdoc.load_file(this->configFile.c_str());
     if (!result)
     {

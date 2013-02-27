@@ -22,8 +22,11 @@
 #include "smconfig.h"
 #include "logger.h"
 #include "monitorworker.h"
+#include "globalutils.h"
 
 using namespace std;
+
+extern int noOfActiveThreads;
 
 //command line arguments are not used. I would say we use a config XML file
 int main (int argc, char *argv[]) {
@@ -33,6 +36,7 @@ int main (int argc, char *argv[]) {
     log->writeToLog(LVLDEBUG, 0, "ServerMonitor starting...");
     boost::shared_ptr<MonitorWorker> mw(new MonitorWorker(cfg, log));
     mw->startMonitoring();
+    log->writeToLog(LVLDEBUG, 0, "NoOfActiveThreads: " + toString(noOfActiveThreads));
     return 0;
 }
 

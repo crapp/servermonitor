@@ -21,7 +21,7 @@ CPUObserver::CPUObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logg
     this->watch = true;
     this->cfg = cfg;
     this->log = log;
-    this->foundSomething = false;
+    this->threadID = 1;
     this->procStreamPath = this->cfg->getConfigValue("/config/sysstat/cpu/processFilesystem");
     if (this->procStreamPath == "")
         this->procStreamPath = "/proc/loadavg";
@@ -37,12 +37,8 @@ CPUObserver::CPUObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logg
         this->cpuAvgLoad5 = 0.7;
     if (!boost::spirit::qi::parse(cpuAvgLoad15.begin(), cpuAvgLoad15.end(), this->cpuAvgLoad15))
         this->cpuAvgLoad15 = 0.8;
-    this->threadID = 1;
-    this->log->writeToLog(LVLDEBUG, this->threadID, "CPUObserver thread is starting");
-}
-
-void CPUObserver::queryCPUProc()
-{
+    this->initLastDetection();
+    this->log->writeToLog(LVLDEBUG, this->threadID, "CPUObserver Object instantiated");
 }
 
 void CPUObserver::handleStreamData(vector<string> &v)
@@ -52,11 +48,6 @@ void CPUObserver::handleStreamData(vector<string> &v)
 
 void CPUObserver::checkStreamData()
 {
-    if (this->checkLastDetection() == false)
-    {
-        this->cpuLoad.clear();
-        return;
-    }
     float avg5, avg15;
     if (cpuLoad.size() == 5)
     {
@@ -64,24 +55,47 @@ void CPUObserver::checkStreamData()
         bool c2 = boost::spirit::qi::parse(cpuLoad[2].begin(), cpuLoad[2].end(), avg15);
         if (c1 == false || c2 == false)
         {
-            this->log->writeToLog(LVLERROR, this->threadID, "Can not cast: " + cpuLoad[1] + ", " + cpuLoad[2]);
+            this->log->writeToLog(LVLERROR, this->threadID, "Can not cast: " +
+                                  cpuLoad[1] + ", " + cpuLoad[2]);
             return;
         }
-        if (avg5 > this->cpuAvgLoad5 || avg15 > this->cpuAvgLoad15)
+        if (this->checkTimeoutMail(this->mapLastDetection["avg5"]) && avg5 > this->cpuAvgLoad5)
         {
-            //TODO: Collect data and send e-mail!
-            string msg = "Average CPU load exceeded threshold ";
-            BOOST_FOREACH(const string &s, this->cpuLoad)
-            {
-                msg += s + " ";
-            }
-            this->log->writeToLog(LVLDEBUG, this->threadID, msg);
-            this->foundSomething = true;
-            this->ptimeLastDetection = boost::posix_time::second_clock::universal_time();
+            this->mapLastDetection["avg5"] = boost::posix_time::second_clock::universal_time();
+            string msg = "Average CPU load measured over the last 5 Minutes exceeded threshold("
+                    + toString(this->cpuAvgLoad5) + ") ";
+            composeMailMessage(msg);
+        }
+        if (this->checkTimeoutMail(this->mapLastDetection["avg15"]) && avg15 > this->cpuAvgLoad15)
+        {
+            this->mapLastDetection["avg15"] = boost::posix_time::second_clock::universal_time();
+            string msg = "Average CPU load measured over the last 15 Minutes exceeded threshold("
+                    + toString(this->cpuAvgLoad15) + ") ";
+            composeMailMessage(msg);
         }
     } else {
         this->log->writeToLog(LVLERROR, this->threadID, "Average CPU load returned wrong number of informations: " +
                               toString(cpuLoad.size()) + ", expected 5");
     }
     cpuLoad.clear();
+}
+
+void CPUObserver::initLastDetection()
+{
+    //create a ptime object that is older as this->nextMailAfter + 60
+    boost::posix_time::ptime pt = boost::posix_time::second_clock::universal_time()
+            - boost::posix_time::seconds(this->nextMailAfter + 60);
+    //add start values to map
+    this->mapLastDetection.insert(pair<string, boost::posix_time::ptime>("avg5", pt));
+    this->mapLastDetection.insert(pair<string, boost::posix_time::ptime>("avg15", pt));
+}
+
+void CPUObserver::composeMailMessage(string &msg)
+{
+    BOOST_FOREACH(const string &s, this->cpuLoad)
+    {
+        msg += s + " ";
+    }
+    this->log->writeToLog(LVLDEBUG, this->threadID, msg);
+    //TODO: Collect data and send e-mail!
 }

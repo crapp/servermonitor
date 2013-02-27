@@ -20,8 +20,10 @@
 
 #include <iostream>
 #include <string>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include "smconfig.h"
 
@@ -37,7 +39,7 @@ public:
     void writeToLog(const int &debugLevel, const int &threadID, const string &msg);
 private:
     boost::shared_ptr<SMConfig> cfg;
-    boost::shared_ptr<boost::mutex> mtx;
+    static boost::mutex mtx;
 };
 
 #endif // LOGGER_H

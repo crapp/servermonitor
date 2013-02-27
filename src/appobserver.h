@@ -17,18 +17,20 @@
 #ifndef APPOBSERVER_H
 #define APPOBSERVER_H
 
-#include <map>
 #include "observer.h"
 
 class AppObserver : public Observer
 {
 public:
     AppObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log);
+
+private:
     bool getData();
     void handleStreamData(vector<string> &v);
     void checkStreamData();
-private:
-    int threadID;
+    void initLastDetection();
+
+    map< string, vector<string> > appsToCheck;
 };
 
 #endif // APPOBSERVER_H

@@ -24,7 +24,7 @@ Observer::~Observer()
 {
 }
 
-void Observer::procFSThreadLoop()
+void Observer::threadLoop()
 {
     try
     {
@@ -38,19 +38,21 @@ void Observer::procFSThreadLoop()
     catch (boost::thread_interrupted)
     {
         this->log->writeToLog(LVLDEBUG, this->threadID, "Thread interrupted");
+        noOfActiveThreads--;
+        return;
     }
+    noOfActiveThreads--;
+    this->log->writeToLog(LVLDEBUG, this->threadID, "Thread interrupted");
 }
 
-bool Observer::checkLastDetection()
+bool Observer::checkTimeoutMail(const boost::posix_time::ptime &pt)
 {
-    if (this->foundSomething)
+    boost::posix_time::ptime ptimeNow = boost::posix_time::second_clock::universal_time();
+    boost::posix_time::time_duration td = ptimeNow - pt;
+
+    if (td.total_seconds() < this->nextMailAfter)
     {
-        boost::posix_time::ptime ptimeNow = boost::posix_time::second_clock::universal_time();
-        boost::posix_time::time_duration td = ptimeNow - this->ptimeLastDetection;
-        if (td.total_seconds() < this->nextMailAfter)
-        {
-            return false;
-        }
+        return false;
     }
     return true;
 }

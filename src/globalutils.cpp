@@ -14,25 +14,6 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef CPUOBSERVER_H
-#define CPUOBSERVER_H
+#include "globalutils.h"
 
-#include "procobserver.h"
-
-class CPUObserver : public ProcObserver
-{
-public:
-    CPUObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log);
-
-private:
-    vector<string> cpuLoad;
-    float cpuAvgLoad5;
-    float cpuAvgLoad15;
-
-    void handleStreamData(vector<string> &v);
-    void checkStreamData();
-    void initLastDetection();
-    void composeMailMessage(string &msg);
-};
-
-#endif // CPUOBSERVER_H
+int noOfActiveThreads = 0;

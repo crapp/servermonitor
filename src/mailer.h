@@ -35,7 +35,7 @@ public:
 private:
     boost::shared_ptr<SMConfig> cfg;
     boost::shared_ptr<Logger> log;
-    boost::shared_ptr<boost::mutex> mtx;
+    static boost::mutex mtx;
 };
 
 #endif // MAILER_H

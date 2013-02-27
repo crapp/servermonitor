@@ -31,6 +31,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/appobserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/cpuobserver.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/globalutils.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/logger.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/mailer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/memoryobserver.cpp
@@ -69,6 +70,6 @@ if(Boost_FOUND)
     INSTALL(TARGETS serverMonitor
         RUNTIME DESTINATION bin
     )
-INSTALL(FILES ${CONFIG_FILES} DESTINATION ${ConfigDir})
+    INSTALL(FILES ${CONFIG_FILES} DESTINATION ${ConfigDir})
 endif(Boost_FOUND)
 

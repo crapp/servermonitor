@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "globalutils.h"
 #include "pugixml/pugixml.hpp" //xml Parser
 //TODO: Can not include logger, then we need some forward declaration. Do we need this?
 //#include "logger.h"

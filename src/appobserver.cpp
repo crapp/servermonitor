@@ -22,21 +22,21 @@ AppObserver::AppObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logg
     this->log = log;
     this->threadID = 3;
     this->watch = true;
-    this->foundSomething = false;
     string msToWait = this->cfg->getConfigValue("/config/applications/pollTime");
     if (!boost::spirit::qi::parse(msToWait.begin(), msToWait.end(), this->msToWait))
         this->msToWait = 1000;
     string nextMailAfter = this->cfg->getConfigValue("/config/email/secondsNextMail");
     if (!boost::spirit::qi::parse(nextMailAfter.begin(), nextMailAfter.end(), this->nextMailAfter))
         this->nextMailAfter = 43200; //every 12 hours
-    this->log->writeToLog(LVLDEBUG, this->threadID, "AppObserver thread is starting");
+    this->appsToCheck = this->cfg->getConfigMap("/config/applications//app");
+    this->initLastDetection();
+    this->log->writeToLog(LVLDEBUG, this->threadID, "AppObserver Object instantiated");
 }
 
 bool AppObserver::getData()
 {
-    map< string, vector<string> > appsToCheck = this->cfg->getConfigMap("/config/applications//app");
     typedef pair< string, vector<string> > ApplicationAttributes;
-    BOOST_FOREACH(const ApplicationAttributes &AppAttrPair, appsToCheck)
+    BOOST_FOREACH(const ApplicationAttributes &AppAttrPair, this->appsToCheck)
     {
         if (AppAttrPair.second[2] == "false")
             continue;
@@ -51,6 +51,8 @@ bool AppObserver::getData()
         bool running = false;
         BOOST_FOREACH(const string &line, lines)
         {
+            if (!this->checkTimeoutMail(this->mapLastDetection[AppAttrPair.first]))
+                continue;
             boost::regex pattern("^\\s+[0-9]+\\s+([a-z]+/[0-9]|\\?)\\s+[0-9]{2}:[0-9]{2}:[0-9]{2}\\s+\\w+$");
             if (boost::regex_match(line, pattern))
             {
@@ -83,4 +85,15 @@ void AppObserver::handleStreamData(vector<string> &v)
 
 void AppObserver::checkStreamData()
 {
+}
+
+void AppObserver::initLastDetection()
+{
+    typedef pair< string, vector<string> > ApplicationAttributes;
+    boost::posix_time::ptime pt = boost::posix_time::second_clock::universal_time()
+            - boost::posix_time::seconds(this->nextMailAfter);
+    BOOST_FOREACH(const ApplicationAttributes &AppAttrPair, this->appsToCheck)
+    {
+        this->mapLastDetection.insert(pair<string, boost::posix_time::ptime>(AppAttrPair.first, pt));
+    }
 }
