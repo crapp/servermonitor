@@ -22,6 +22,7 @@
 #include <stdio.h>
 
 #define DEVELOPMENT 1
+#define VERSION 1.0
 
 using namespace std;
 
@@ -46,6 +47,7 @@ string toString(T t)
  * ouput will be returned.
  */
 inline string execSysCmd(const char* cmd) {
+    //NOTE: Append export LC_MESSAGES=C && to all commands?!
     FILE *pipe = popen(cmd, "r");
     if (!pipe)
         return "ERROR";

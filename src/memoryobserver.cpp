@@ -17,10 +17,12 @@
 
 #include "memoryobserver.h"
 
-MemoryObserver::MemoryObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log)
+MemoryObserver::MemoryObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log,
+                               boost::shared_ptr<Mailer> mail)
 {
     this->cfg = cfg;
     this->log = log;
+    this->mail = mail;
     this->watch = true;
     this->threadID = 2;
     this->procStreamPath = this->cfg->getConfigValue("/config/sysstat/memory/processFilesystem");

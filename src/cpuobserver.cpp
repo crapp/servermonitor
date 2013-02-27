@@ -16,10 +16,12 @@
 
 #include "cpuobserver.h"
 
-CPUObserver::CPUObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log)
+CPUObserver::CPUObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log,
+                         boost::shared_ptr<Mailer> mail)
 {
     this->watch = true;
     this->cfg = cfg;
+    this->mail = mail;
     this->log = log;
     this->threadID = 1;
     this->procStreamPath = this->cfg->getConfigValue("/config/sysstat/cpu/processFilesystem");

@@ -35,16 +35,19 @@
 #include "cpuobserver.h"
 #include "appobserver.h"
 #include "globalutils.h"
+#include "mailer.h"
 
 class MonitorWorker
 {
 public:
-    MonitorWorker(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log);
+    MonitorWorker(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log,
+                  boost::shared_ptr<Mailer> mail);
     ~MonitorWorker();
     int startMonitoring();
 private:
     boost::shared_ptr<SMConfig> cfg;
     boost::shared_ptr<Logger> log;
+    boost::shared_ptr<Mailer> mail;
     boost::shared_ptr<MemoryObserver> mwatch;
     boost::shared_ptr<CPUObserver> cpuwatch;
     boost::shared_ptr<AppObserver> appwatch;

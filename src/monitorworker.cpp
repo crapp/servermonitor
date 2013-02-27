@@ -16,8 +16,9 @@
 
 #include "monitorworker.h"
 
-MonitorWorker::MonitorWorker(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log) :
-    cfg(cfg), log(log)
+MonitorWorker::MonitorWorker(boost::shared_ptr<SMConfig> cfg,
+                             boost::shared_ptr<Logger> log, boost::shared_ptr<Mailer> mail) :
+    cfg(cfg), log(log), mail(mail)
 {
     this->threadID = 0;
     this->fifopath = this->cfg->getConfigValue("/config/common/fifoPath");
@@ -32,19 +33,19 @@ int MonitorWorker::startMonitoring()
     //starting cpu, memory and app observer
     if (this->cfg->getConfigValue("/config/sysstat/cpu/check") == "true")
     {
-        this->cpuwatch = boost::make_shared<CPUObserver>(this->cfg, this->log);
+        this->cpuwatch = boost::make_shared<CPUObserver>(this->cfg, this->log, this->mail);
         this->cpuwatchThread = boost::make_shared<boost::thread>(boost::bind(&CPUObserver::threadLoop, this->cpuwatch));
         noOfActiveThreads++;
     }
     if (this->cfg->getConfigValue("/config/sysstat/memory/check") == "true")
     {
-        this->mwatch = boost::make_shared<MemoryObserver>(this->cfg, this->log);
+        this->mwatch = boost::make_shared<MemoryObserver>(this->cfg, this->log, this->mail);
         this->mwatchThread = boost::make_shared<boost::thread>(boost::bind(&MemoryObserver::threadLoop, this->mwatch));
         noOfActiveThreads++;
     }
     if (this->cfg->getConfigValue("/config/applications/check") == "true")
     {
-        this->appwatch = boost::make_shared<AppObserver>(this->cfg, this->log);
+        this->appwatch = boost::make_shared<AppObserver>(this->cfg, this->log, this->mail);
         this->appwatchThread = boost::make_shared<boost::thread>(boost::bind(&AppObserver::threadLoop, this->appwatch));
         noOfActiveThreads++;
     }

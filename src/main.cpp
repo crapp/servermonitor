@@ -21,6 +21,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include "smconfig.h"
 #include "logger.h"
+#include "mailer.h"
 #include "monitorworker.h"
 #include "globalutils.h"
 
@@ -33,8 +34,9 @@ int main (int argc, char *argv[]) {
     //our config object that we share with other objects
     boost::shared_ptr<SMConfig> cfg(new SMConfig());
     boost::shared_ptr<Logger> log(new Logger(cfg));
-    log->writeToLog(LVLDEBUG, 0, "ServerMonitor starting...");
-    boost::shared_ptr<MonitorWorker> mw(new MonitorWorker(cfg, log));
+    boost::shared_ptr<Mailer> mail(new Mailer(cfg, log));
+    log->writeToLog(LVLDEBUG, 0, "ServerMonitor starting " + toString(VERSION));
+    boost::shared_ptr<MonitorWorker> mw(new MonitorWorker(cfg, log, mail));
     mw->startMonitoring();
     log->writeToLog(LVLDEBUG, 0, "NoOfActiveThreads: " + toString(noOfActiveThreads));
     return 0;

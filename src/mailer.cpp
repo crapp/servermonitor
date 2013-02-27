@@ -24,11 +24,13 @@ Mailer::Mailer(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log) :
 //define static mutex
 boost::mutex Mailer::mtx;
 
-bool Mailer::sendmail(const string &subject, const string &message) {
+bool Mailer::sendmail(const string &subject, string &message) {
 
     //make this email sender thread safe with a simple lock
     boost::lock_guard<boost::mutex> lockGuard(Mailer::mtx);
     bool success = false;
+
+    collectData(message);
 
     try {
         FILE *mta = popen(this->cfg->getConfigValue("/config/email/mailCommand").c_str(), "w");
@@ -47,4 +49,22 @@ bool Mailer::sendmail(const string &subject, const string &message) {
         this->log->writeToLog(LVLERROR, -1, "Can not send email");
     }
     return success;
+}
+
+void Mailer::collectData(string &msg)
+{
+    map< string, vector<string> > dataCollectors;
+    dataCollectors = this->cfg->getConfigMap("/config/email/dataCollectors//collector");
+    if (dataCollectors.size() > 0)
+    {
+        typedef pair< string, vector<string> > DCollectors;
+        BOOST_FOREACH(const DCollectors &dc, dataCollectors)
+        {
+            msg += "\n\n---------------------------------------------------------------------------\n";
+            msg += "Collecting data from command: " + dc.first + "\n\n";
+            //string cmd = "export LC_MESSAGES=C && " + dc.second[1];
+            msg += execSysCmd(dc.second[1].c_str());
+        }
+    }
+    msg += "\n\nFinished collecting data";
 }

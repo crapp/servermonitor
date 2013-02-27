@@ -24,7 +24,8 @@
 class MemoryObserver : public ProcObserver
 {
 public:
-    MemoryObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log);
+    MemoryObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log,
+                   boost::shared_ptr<Mailer> mail);
 private:
     //boost::shared_ptr< map<string, float> > memInfoMap;
     map<string, float> memInfoMap;

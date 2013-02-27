@@ -22,7 +22,8 @@
 class CPUObserver : public ProcObserver
 {
 public:
-    CPUObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log);
+    CPUObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log,
+                boost::shared_ptr<Mailer> mail);
 
 private:
     vector<string> cpuLoad;

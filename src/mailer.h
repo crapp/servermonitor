@@ -19,6 +19,7 @@
 
 #include <stdio.h> //needed for popen and FILE handle
 #include <string>
+#include <boost/foreach.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/thread/mutex.hpp>
@@ -31,11 +32,13 @@ class Mailer
 {
 public:
     Mailer(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log);
-    bool sendmail(const string &subject, const string &message);
+    bool sendmail(const string &subject, string &message);
 private:
     boost::shared_ptr<SMConfig> cfg;
     boost::shared_ptr<Logger> log;
     static boost::mutex mtx;
+
+    void collectData(string &msg);
 };
 
 #endif // MAILER_H

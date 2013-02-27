@@ -35,6 +35,7 @@
 #include "smconfig.h"
 #include "logger.h"
 #include "globalutils.h"
+#include "mailer.h"
 
 class Observer
 {
@@ -51,6 +52,7 @@ protected:
 
     boost::shared_ptr<SMConfig> cfg;
     boost::shared_ptr<Logger> log;
+    boost::shared_ptr<Mailer> mail;
     ifstream procStream;
     map<string, boost::posix_time::ptime> mapLastDetection;
     string procStreamPath;

@@ -19,16 +19,24 @@
 #define LOGGER_H
 
 #include <iostream>
+#include <fstream>
 #include <string>
+#include <algorithm>
+#include <boost/assign/list_of.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/thread/thread.hpp>
+#include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/spirit/include/qi.hpp>
 #include "smconfig.h"
 
 #define LVLDEBUG 0
-#define LVLERROR 1
+#define LVLINFO  1
+#define LVLWARN  2
+#define LVLERROR 3
 
 using namespace std;
 
@@ -39,7 +47,17 @@ public:
     void writeToLog(const int &debugLevel, const int &threadID, const string &msg);
 private:
     boost::shared_ptr<SMConfig> cfg;
+    void checkLogDir();
+    void checkMaxLogFile();
+    void setLogFile();
+
     static boost::mutex mtx;
+    string logDir;
+    string logFile;
+    map<int, string> logLevels;
+    boost::gregorian::date logDate;
+    int maxLogFiles;
+    bool doLog;
 };
 
 #endif // LOGGER_H

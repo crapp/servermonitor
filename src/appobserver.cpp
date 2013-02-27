@@ -16,10 +16,12 @@
 
 #include "appobserver.h"
 
-AppObserver::AppObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log)
+AppObserver::AppObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log,
+                         boost::shared_ptr<Mailer> mail)
 {
     this->cfg = cfg;
     this->log = log;
+    this->mail = mail;
     this->threadID = 3;
     this->watch = true;
     string msToWait = this->cfg->getConfigValue("/config/applications/pollTime");

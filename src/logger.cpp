@@ -17,8 +17,15 @@
 
 #include "logger.h"
 
-Logger::Logger(boost::shared_ptr<SMConfig> cfg) : cfg(cfg)
+Logger::Logger(boost::shared_ptr<SMConfig> cfg) : cfg(cfg), doLog(false)
 {
+    this->logDir = this->cfg->getConfigValue("/config/logger/logDir");
+    this->logLevels = boost::assign::map_list_of (0, "DEBUG") (1, "INFO") (2, "WARN") (3, "ERROR");
+    string maxLogFiles = this->cfg->getConfigValue("/config/logger/maxLogFiles");
+    if (!boost::spirit::qi::parse(maxLogFiles.begin(), maxLogFiles.end(), this->maxLogFiles))
+        this->maxLogFiles = 3;
+    this->checkLogDir();
+    this->setLogFile();
 }
 
 //define static mutex
@@ -26,14 +33,126 @@ boost::mutex Logger::mtx;
 
 void Logger::writeToLog(const int &debugLevel, const int &threadID, const string &msg)
 {
+    //lock the logger with a lock_guard. thhis will be freed if it runs out of scope
     boost::lock_guard<boost::mutex> lockGuard(Logger::mtx);
-    boost::posix_time::ptime dt = boost::posix_time::microsec_clock::local_time();
-    if (debugLevel == LVLDEBUG)
+    if (doLog)
     {
-        cout << boost::posix_time::to_simple_string(dt) << ": " << "Thread: " << threadID << " sysID: " << boost::this_thread::get_id() << " -- " << msg << endl;
+        // check if date is still current date
+        //FIXME: Remove the addition of one day, needed to debug the code
+        if (this->logDate < boost::gregorian::day_clock::local_day())
+        {
+            this->setLogFile();
+            this->checkMaxLogFile();
+        }
+        //get current posix time microsec resolution for log ouputs.
+        boost::posix_time::ptime dt = boost::posix_time::microsec_clock::local_time();
+        ofstream logFileStream;
+        logFileStream.open(this->logFile.c_str(), ios::app);
+        if (logFileStream.is_open())
+        {
+            logFileStream << boost::posix_time::to_simple_string(dt) << ": [" <<
+                             this->logLevels[debugLevel] << "]" << "[" << boost::this_thread::get_id() <<
+                             "|" << threadID << "] - " << msg << endl;
+            logFileStream.close();
+        } else {
+            cerr << "Can not write to logfile " << this->logFile << endl;
+        }
+//        if (debugLevel == LVLDEBUG)
+//        {
+//            cout << boost::posix_time::to_simple_string(dt) << ": " <<
+//                    "Thread: " << threadID << " sysID: " << boost::this_thread::get_id() <<
+//                    " -- " << msg << endl;
+//        }
+//        if (debugLevel == LVLERROR)
+//        {
+//            cerr << boost::posix_time::to_simple_string(dt) << ": " <<
+//                    "Thread: " << threadID << " sysID: " << boost::this_thread::get_id() <<
+//                    " -- " << msg << endl;
+//        }
     }
-    if (debugLevel == LVLERROR)
+}
+
+void Logger::checkLogDir()
+{
+    bool doLog = true;
+    try
     {
-        cerr << boost::posix_time::to_simple_string(dt) << ": " << "Thread: " << threadID << " sysID: " << boost::this_thread::get_id() << " -- " << msg << endl;
+        //get all parts of the logDir
+        vector<string> pathParts;
+        boost::algorithm::split(pathParts, this->logDir, boost::algorithm::is_any_of("/"));
+        string path = "";
+        // create every level of the logdir path if it not exists. if something gows wrong we set doLog to false.
+        // this mwans there will be not logging activity anymore.
+        for (vector<string>::const_iterator it = pathParts.begin(); it != pathParts.end(); it++)
+        {
+            if (*it == "")
+                continue;
+            if (!boost::filesystem::is_directory(path + "/" + *it))
+            {
+                boost::filesystem::create_directory(path + "/" + *it);
+            }
+            path += "/" + *it;
+        }
     }
+    catch(boost::filesystem::filesystem_error &ex)
+    {
+        cerr << ex.what() << "  " << ex.code() << endl;
+        doLog = false;
+    }
+    catch (...)
+    {
+        cerr << "Error while creating logDir" << endl;
+        doLog = false;
+    }
+
+    this->doLog = doLog;
+}
+
+void Logger::checkMaxLogFile()
+{
+    //second check there are not to many logFiles in logDir
+    boost::filesystem::directory_iterator dirIter(this->logDir);
+    boost::filesystem::directory_iterator endIter;
+    int count = distance(dirIter, endIter);
+    //TODO add an additional ckeck for logfile size
+    if (count > this->maxLogFiles)
+    {
+        vector<string> filesInFolder;
+        //Find all files in folder and put them into a vector
+        for(boost::filesystem::directory_iterator dirIter(this->logDir); dirIter != endIter; dirIter++)
+        {
+            filesInFolder.push_back(dirIter->path().filename().string());
+
+        }
+        //sort the vector, oldest files are topmost
+        sort(filesInFolder.begin(), filesInFolder.end());
+        //delet all files no longer needed
+        for (int i = 0; i < count-this->maxLogFiles ; i++)
+        {
+            try {
+                string fileToDel = this->logDir + "/" + filesInFolder[i];
+                if (boost::filesystem::is_regular_file(fileToDel))
+                    boost::filesystem::remove(fileToDel);
+            }
+            catch(boost::filesystem::filesystem_error &ex)
+            {
+                cerr << ex.what() << "  " << ex.code() << endl;
+            }
+            catch (...)
+            {
+                cerr << "Error while deleting " << filesInFolder[i] << endl;
+            }
+        }
+    }
+}
+
+void Logger::setLogFile()
+{
+    //first we need to find a new logFile name
+    boost::gregorian::date d = boost::gregorian::day_clock::local_day();
+    this->logDate = d;
+    vector<string> dateParts;
+    string extIsoDate = boost::gregorian::to_iso_extended_string(d);
+    boost::algorithm::split(dateParts, extIsoDate, boost::algorithm::is_any_of("-"));
+    this->logFile = this->logDir + "/" + "serverMonitor" + dateParts[0] + dateParts[1] + dateParts[2] + ".log";
 }
