@@ -35,7 +35,8 @@ int main (int argc, char *argv[]) {
     boost::shared_ptr<SMConfig> cfg(new SMConfig());
     boost::shared_ptr<Logger> log(new Logger(cfg));
     boost::shared_ptr<Mailer> mail(new Mailer(cfg, log));
-    log->writeToLog(LVLINFO, 0, "ServerMonitor starting " + toString(VERSION));
+    string version(VERSION);
+    log->writeToLog(LVLINFO, 0, "ServerMonitor starting " + version);
     boost::shared_ptr<MonitorWorker> mw(new MonitorWorker(cfg, log, mail));
     mw->startMonitoring();
     log->writeToLog(LVLINFO, 0, "ServerMonitor has stopped");

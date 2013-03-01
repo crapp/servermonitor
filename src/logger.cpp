@@ -127,6 +127,10 @@ void Logger::checkMaxLogFile()
         //Find all files in folder and put them into a vector
         for(boost::filesystem::directory_iterator dirIter(this->logDir); dirIter != endIter; dirIter++)
         {
+            //Fix in older boost::filesystem implementations filename() directly returns a string
+#if BOOST_VERSION / 100 % 1000 < 52
+            filesInFolder.push_back(dirIter->path().filename());
+#endif
             filesInFolder.push_back(dirIter->path().filename().string());
 
         }
@@ -135,12 +139,13 @@ void Logger::checkMaxLogFile()
         //delet all files no longer needed
         for (int i = 0; i < count-this->maxLogFiles ; i++)
         {
-            try {
+            try
+            {
                 string fileToDel = this->logDir + "/" + filesInFolder[i];
                 if (boost::filesystem::is_regular_file(fileToDel))
                     boost::filesystem::remove(fileToDel);
             }
-            catch(boost::filesystem::filesystem_error &ex)
+            catch(const boost::filesystem::filesystem_error &ex)
             {
                 cerr << ex.what() << "  " << ex.code() << endl;
             }

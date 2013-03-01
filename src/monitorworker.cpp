@@ -70,7 +70,7 @@ void MonitorWorker::ipcNamedPipe()
         {
             boost::filesystem::remove(this->fifopath);
         }
-        catch(boost::filesystem::filesystem_error &ex)
+        catch(const boost::filesystem::filesystem_error &ex)
         {
             string s(ex.what());
             this->log->writeToLog(LVLERROR, this->threadID,
@@ -126,7 +126,7 @@ void MonitorWorker::stopService()
     {
         boost::filesystem::remove(this->fifopath);
     }
-    catch(boost::filesystem::filesystem_error &ex)
+    catch(const boost::filesystem::filesystem_error &ex)
     {
         string s(ex.what());
         this->log->writeToLog(LVLERROR, this->threadID, "Can not delete existing named pipe: " + s);

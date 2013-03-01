@@ -40,7 +40,7 @@ bool ProcObserver::getData()
                 boost::algorithm::split_regex(v, line, boost::regex(" +"));
             }
             //TODO: we need to catch specific boost exceptions
-            catch(exception &ex)
+            catch(const exception &ex)
             {
                 this->log->writeToLog(LVLERROR, this->threadID, ex.what());
             }
