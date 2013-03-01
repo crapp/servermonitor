@@ -130,8 +130,9 @@ void Logger::checkMaxLogFile()
             //Fix in older boost::filesystem implementations filename() directly returns a string
 #if BOOST_VERSION / 100 % 1000 < 52
             filesInFolder.push_back(dirIter->path().filename());
-#endif
+#else
             filesInFolder.push_back(dirIter->path().filename().string());
+#endif
 
         }
         //sort the vector, oldest files are topmost
