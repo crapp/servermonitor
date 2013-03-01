@@ -23,6 +23,8 @@
         <logDir>/tmp/log/servermonitor</logDir>
         <!-- how many logfiles to store, the oldest will be deleted -->
         <maxLogFiles>3</maxLogFiles>
+        <!-- All events with this log level and above will be logged -->
+        <minLogLevel>DEBUG</minLogLevel>
     </logger>
     <sysstat>
         <cpu>
@@ -49,7 +51,7 @@
         <!-- check applications in general -->
         <check>true</check>
         <!-- how often to poll if the application is alive -->
-        <pollTime>1000</pollTime>
+        <pollTime>10000</pollTime>
         <!-- you can define as many applications as you want. don't change the order of the attributes -->
         <app name="postfix" restart="true" check="true" restartcmd="/etc/init.d/postfix start" /> 
         <app name="ntpd" restart="false" check="true" restartcmd="/etc/init.d/ntpd start" />  

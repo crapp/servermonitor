@@ -24,15 +24,15 @@ Mailer::Mailer(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log) :
 //define static mutex
 boost::mutex Mailer::mtx;
 
-bool Mailer::sendmail(const string &subject, string &message) {
+void Mailer::sendmail(const string &subject, const int &threadID, string &message) {
 
     //make this email sender thread safe with a simple lock
     boost::lock_guard<boost::mutex> lockGuard(Mailer::mtx);
-    bool success = false;
 
-    collectData(message);
+    collectData(message, threadID);
 
     try {
+        //Open mail command with popen
         FILE *mta = popen(this->cfg->getConfigValue("/config/email/mailCommand").c_str(), "w");
         if (mta != 0) {
             fprintf(mta, "To: %s\n", this->cfg->getConfigValue("/config/email/mailTo").c_str());
@@ -42,16 +42,17 @@ bool Mailer::sendmail(const string &subject, string &message) {
             fwrite(".\n", 1, 2, mta);
 
             pclose(mta);
-
-            success = true;
+        } else {
+            this->log->writeToLog(LVLERROR, threadID, "Can not send an email, was not able to open mail command " +
+                                  this->cfg->getConfigValue("/config/email/mailCommand"));
         }
     } catch (...) {
-        this->log->writeToLog(LVLERROR, -1, "Can not send email");
+        this->log->writeToLog(LVLERROR, threadID, "Can not send email, general exception occured");
     }
-    return success;
+    this->log->writeToLog(LVLINFO, threadID, "Mail was sended successfully");
 }
 
-void Mailer::collectData(string &msg)
+void Mailer::collectData(string &msg, const int &threadID)
 {
     map< string, vector<string> > dataCollectors;
     dataCollectors = this->cfg->getConfigMap("/config/email/dataCollectors//collector");
@@ -62,9 +63,12 @@ void Mailer::collectData(string &msg)
         {
             msg += "\n\n---------------------------------------------------------------------------\n";
             msg += "Collecting data from command: " + dc.first + "\n\n";
-            //string cmd = "export LC_MESSAGES=C && " + dc.second[1];
+            this->log->writeToLog(LVLINFO, threadID, "Collecting data from command: "
+                                  + dc.first);
             msg += execSysCmd(dc.second[1].c_str());
         }
+    } else {
+        this->log->writeToLog(LVLWARN, threadID, "No data collectors defined");
     }
     msg += "\n\nFinished collecting data";
 }

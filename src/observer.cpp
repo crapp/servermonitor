@@ -42,13 +42,15 @@ void Observer::threadLoop()
         return;
     }
     noOfActiveThreads--;
-    this->log->writeToLog(LVLDEBUG, this->threadID, "Thread interrupted");
+    this->log->writeToLog(LVLWARN, this->threadID, "Thread stopped because of an error");
 }
 
 bool Observer::checkTimeoutMail(const boost::posix_time::ptime &pt)
 {
     boost::posix_time::ptime ptimeNow = boost::posix_time::second_clock::universal_time();
     boost::posix_time::time_duration td = ptimeNow - pt;
+    this->log->writeToLog(LVLDEBUG, this->threadID, "TimoutMail duration total seconds: "
+                          + toString(td.total_seconds()));
 
     if (td.total_seconds() < this->nextMailAfter)
     {

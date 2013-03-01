@@ -22,6 +22,7 @@ ProcObserver::ProcObserver()
 
 bool ProcObserver::getData()
 {
+    this->log->writeToLog(LVLDEBUG, this->threadID, "Open stream " + this->procStreamPath);
     this->procStream.open(this->procStreamPath.c_str(), ifstream::in);
     if (this->procStream.is_open())
     {
@@ -31,6 +32,7 @@ bool ProcObserver::getData()
             getline(this->procStream, line);
             if (boost::algorithm::trim_copy(line) == "")
                 continue;
+            this->log->writeToLog(LVLDEBUG, this->threadID, "Received line: " + line);
             vector<string> v;
             try
             {
@@ -44,7 +46,7 @@ bool ProcObserver::getData()
             }
             catch(...)
             {
-                this->log->writeToLog(LVLERROR, this->threadID, "MemoryWatch queryProc failed.");
+                this->log->writeToLog(LVLERROR, this->threadID, "Could not split stram data with regex_split. General exception occured");
             }
             this->handleStreamData(v);
         }

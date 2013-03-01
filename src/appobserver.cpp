@@ -24,12 +24,26 @@ AppObserver::AppObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logg
     this->mail = mail;
     this->threadID = 3;
     this->watch = true;
-    string msToWait = this->cfg->getConfigValue("/config/applications/pollTime");
-    if (!boost::spirit::qi::parse(msToWait.begin(), msToWait.end(), this->msToWait))
+    try
+    {
+        this->msToWait = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/applications/pollTime"));
+    }
+    catch (const invalid_argument &ex)
+    {
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"applications/pollTime\" "
+                              + toString(ex.what()));
         this->msToWait = 1000;
-    string nextMailAfter = this->cfg->getConfigValue("/config/email/secondsNextMail");
-    if (!boost::spirit::qi::parse(nextMailAfter.begin(), nextMailAfter.end(), this->nextMailAfter))
+    }
+    try
+    {
+        this->nextMailAfter = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/email/secondsNextMail"));
+    }
+    catch (const invalid_argument &ex)
+    {
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"email/secondsNextMail\" "
+                              + toString(ex.what()));;
         this->nextMailAfter = 43200; //every 12 hours
+    }
     this->appsToCheck = this->cfg->getConfigMap("/config/applications//app");
     this->initLastDetection();
     this->log->writeToLog(LVLDEBUG, this->threadID, "AppObserver Object instantiated");
@@ -37,15 +51,16 @@ AppObserver::AppObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logg
 
 bool AppObserver::getData()
 {
+    this->log->writeToLog(LVLDEBUG,this->threadID, "AppObserver is reading data");
     typedef pair< string, vector<string> > ApplicationAttributes;
     BOOST_FOREACH(const ApplicationAttributes &AppAttrPair, this->appsToCheck)
     {
         if (AppAttrPair.second[2] == "false")
             continue;
-        //this->log->writeToLog(LVLDEBUG, this->threadID, "Checking process " + AppAttrPair.first);
+        this->log->writeToLog(LVLDEBUG, this->threadID, "Checking process " + AppAttrPair.first);
         string cmd = "ps -C " + AppAttrPair.first + " 2>&1";
         string psOut = execSysCmd(cmd.c_str());
-        //this->log->writeToLog(LVLDEBUG, this->threadID, "psOut: " + psOut);
+        this->log->writeToLog(LVLDEBUG, this->threadID, "Command output: " + psOut);
         if(psOut.compare("ERROR") == 0) //TODO: Write an E-Mail, should we really quit the loop?
             return false;
         vector<string> lines;
@@ -58,6 +73,7 @@ bool AppObserver::getData()
             boost::regex pattern("^\\s+[0-9]+\\s+([a-z]+/[0-9]|\\?)\\s+[0-9]{2}:[0-9]{2}:[0-9]{2}\\s+\\w+$");
             if (boost::regex_match(line, pattern))
             {
+                this->log->writeToLog(LVLDEBUG, this->threadID, "Process " + AppAttrPair.first + " is running");
                 running = true;
                 //everything is all right, process is running
                 continue;
@@ -68,12 +84,17 @@ bool AppObserver::getData()
             if (AppAttrPair.second[1] == "false")
             {
                 //TODO: E-Mail Message with hint no restart
-                this->log->writeToLog(LVLDEBUG, this->threadID, AppAttrPair.first + " is not running. Automatic restart is disabled.");
+                this->log->writeToLog(LVLWARN, this->threadID, AppAttrPair.first + " is not running. Automatic restart is disabled.");
             } else {
+                this->log->writeToLog(LVLWARN, this->threadID, "Process " + AppAttrPair.first + " is not running, trying to restart.");
                 cmd = AppAttrPair.second[3] + " 2>&1";
                 psOut = execSysCmd(cmd.c_str());
+                this->log->writeToLog(LVLINFO, this->threadID, "Restart command ouput: " + psOut);
                 if(psOut.compare("ERROR") == 0) //TODO: Write an E-Mail, should we really quit the loop?
+                {
+                    this->log->writeToLog(LVLERROR, this->threadID, "Restart command failed: " + psOut);
                     continue;
+                }
                 //TODO: Write E-Mail with output of cmd and that the process was not running
             }
         }
@@ -96,6 +117,7 @@ void AppObserver::initLastDetection()
             - boost::posix_time::seconds(this->nextMailAfter);
     BOOST_FOREACH(const ApplicationAttributes &AppAttrPair, this->appsToCheck)
     {
+        this->log->writeToLog(LVLDEBUG, this->threadID, "Initializing last detection map for application: " + AppAttrPair.first);
         this->mapLastDetection.insert(pair<string, boost::posix_time::ptime>(AppAttrPair.first, pt));
     }
 }

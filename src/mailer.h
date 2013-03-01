@@ -32,13 +32,13 @@ class Mailer
 {
 public:
     Mailer(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log);
-    bool sendmail(const string &subject, string &message);
+    void sendmail(const string &subject, const int &threadID, string &message);
 private:
     boost::shared_ptr<SMConfig> cfg;
     boost::shared_ptr<Logger> log;
     static boost::mutex mtx;
 
-    void collectData(string &msg);
+    void collectData(string &msg, const int &threadID);
 };
 
 #endif // MAILER_H

@@ -30,7 +30,6 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
-#include <boost/spirit/include/qi.hpp>
 #include "smconfig.h"
 
 #define LVLDEBUG 0

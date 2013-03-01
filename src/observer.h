@@ -30,7 +30,6 @@
 #include <boost/regex.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
-#include <boost/spirit/include/qi.hpp>
 #include <boost/thread.hpp>
 #include "smconfig.h"
 #include "logger.h"

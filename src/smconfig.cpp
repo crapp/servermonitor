@@ -44,8 +44,8 @@ string SMConfig::getConfigValue(const string &xpath)
     catch (pugi::xpath_exception &ex)
     {
         //TODO: Patch this to the logger and end application
-        cout << ex.result() << endl;
-        cout << ex.what() << endl;
+        cerr << ex.result() << endl;
+        cerr << ex.what() << endl;
     }
     return "";
 }
@@ -66,12 +66,7 @@ map< string, vector<string> > SMConfig::getConfigMap(const string &xpath)
                 {
                     attribs.push_back(ait->value());
                 }
-//                pugi::xpath_node nd = *it;
                 appMap.insert(pair< string, vector<string> >(attribs[0], attribs));
-//                attribs.push_back(nd.node().attribute("name").value());
-//                attribs.push_back(nd.node().attribute("restart").value());
-//                attribs.push_back(nd.node().attribute("check").value());
-//                attribs.push_back(nd.node().attribute("restartcmd").value());
             }
         }
     }

@@ -33,18 +33,21 @@ int MonitorWorker::startMonitoring()
     //starting cpu, memory and app observer
     if (this->cfg->getConfigValue("/config/sysstat/cpu/check") == "true")
     {
+        this->log->writeToLog(LVLINFO, this->threadID, "CPU Observer is activated");
         this->cpuwatch = boost::make_shared<CPUObserver>(this->cfg, this->log, this->mail);
         this->cpuwatchThread = boost::make_shared<boost::thread>(boost::bind(&CPUObserver::threadLoop, this->cpuwatch));
         noOfActiveThreads++;
     }
     if (this->cfg->getConfigValue("/config/sysstat/memory/check") == "true")
     {
+        this->log->writeToLog(LVLINFO, this->threadID, "Memory Observer is activated");
         this->mwatch = boost::make_shared<MemoryObserver>(this->cfg, this->log, this->mail);
         this->mwatchThread = boost::make_shared<boost::thread>(boost::bind(&MemoryObserver::threadLoop, this->mwatch));
         noOfActiveThreads++;
     }
     if (this->cfg->getConfigValue("/config/applications/check") == "true")
     {
+        this->log->writeToLog(LVLINFO, this->threadID, "Applications Observer is activated");
         this->appwatch = boost::make_shared<AppObserver>(this->cfg, this->log, this->mail);
         this->appwatchThread = boost::make_shared<boost::thread>(boost::bind(&AppObserver::threadLoop, this->appwatch));
         noOfActiveThreads++;
@@ -84,6 +87,7 @@ void MonitorWorker::ipcNamedPipe()
     }
     while(1)
     {
+        this->log->writeToLog(LVLINFO, this->threadID, "Starting to read from fifo");
         char buf[80];
         memset(&buf[0], 0, sizeof(buf)); //reset/initialize char array
         fifo = open(this->fifopath.c_str(), O_RDONLY); //this is blocking until we receive something
@@ -103,6 +107,9 @@ void MonitorWorker::ipcNamedPipe()
         } while (res > 0);
         bytes_read = 0;
 
+        this->log->writeToLog(LVLINFO, this->threadID, "Received message from fifo: "
+                              + pipeString);
+
         close(fifo);
         if (boost::algorithm::to_lower_copy(pipeString) == "exit")
         {
@@ -114,6 +121,7 @@ void MonitorWorker::ipcNamedPipe()
 
 void MonitorWorker::stopService()
 {
+    this->log->writeToLog(LVLINFO, this->threadID, "Stopping service...");
     try
     {
         boost::filesystem::remove(this->fifopath);
@@ -125,21 +133,33 @@ void MonitorWorker::stopService()
     }
     if (this->cpuwatchThread != 0)
     {
+        this->log->writeToLog(LVLINFO, this->threadID, "Interrupting CPU observer");
         this->cpuwatchThread->interrupt();
         if (this->cpuwatchThread->joinable())
+        {
+            this->log->writeToLog(LVLDEBUG, this->threadID, "Waiting for CPU observer to stop");
             this->cpuwatchThread->join();
+        }
     }
     if (this->mwatchThread != 0)
     {
+        this->log->writeToLog(LVLINFO, this->threadID, "Interrupting Memory observer");
         this->mwatchThread->interrupt();
         if (this->mwatchThread->joinable())
+        {
+            this->log->writeToLog(LVLDEBUG, this->threadID, "Waiting for Memory observer to stop");
             this->mwatchThread->join();
+        }
     }
     if (this->appwatchThread != 0)
     {
+        this->log->writeToLog(LVLINFO, this->threadID, "Interrupting Applications observer");
         this->appwatchThread->interrupt();
         if (this->appwatchThread->joinable())
+        {
+            this->log->writeToLog(LVLDEBUG, this->threadID, "Waiting for Applications observer to stop");
             this->appwatchThread->join();
+        }
     }
 }
 

@@ -20,24 +20,44 @@
 #include <string>
 #include <sstream>
 #include <stdio.h>
+#include <stdexcept>      // std::invalid_argument
 
 #define DEVELOPMENT 1
 #define VERSION 1.0
 
 using namespace std;
 
+extern int noOfActiveThreads;
+
 /**
  *toString template
  */
-
-extern int noOfActiveThreads;
-
 template <typename T>
 string toString(T t)
 {
     ostringstream os;
     os << t;
     return os.str();
+}
+
+/**
+ *
+ *Use this template with "Explicit template argument specification"
+ */
+template<typename T>
+T ConvertStringToNumber(const string& str)
+{
+    istringstream ss(str);
+    T number = 0; //set a default value so we don't get some uninitialized garbage
+    ss >> number;
+
+    if (ss.fail( ))
+    {
+        // don't forget to catch this exception
+        throw invalid_argument("ConvertStringToNumber:" + str);
+    }
+
+    return number;
 }
 
 /**

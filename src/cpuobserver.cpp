@@ -25,20 +25,49 @@ CPUObserver::CPUObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logg
     this->log = log;
     this->threadID = 1;
     this->procStreamPath = this->cfg->getConfigValue("/config/sysstat/cpu/processFilesystem");
+    //TODO: How do we handle empty config values?
     if (this->procStreamPath == "")
         this->procStreamPath = "/proc/loadavg";
-    string msToWait = this->cfg->getConfigValue("/config/sysstat/cpu/pollTime");
-    if (!boost::spirit::qi::parse(msToWait.begin(), msToWait.end(), this->msToWait))
+    try
+    {
+        this->msToWait = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/applications/pollTime"));
+    }
+    catch (const invalid_argument &ex)
+    {
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"applications/pollTime\" "
+                              + toString(ex.what()));
         this->msToWait = 1000;
-    string nextMailAfter = this->cfg->getConfigValue("/config/email/secondsNextMail");
-    if (!boost::spirit::qi::parse(nextMailAfter.begin(), nextMailAfter.end(), this->nextMailAfter))
+    }
+    try
+    {
+        this->nextMailAfter = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/email/secondsNextMail"));
+    }
+    catch (const invalid_argument &ex)
+    {
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"email/secondsNextMail\" "
+                              + toString(ex.what()));;
         this->nextMailAfter = 43200; //every 12 hours
-    string cpuAvgLoad5 = this->cfg->getConfigValue("/config/sysstat/cpu/avg5threshold");
-    string cpuAvgLoad15 = this->cfg->getConfigValue("/config/sysstat/cpu/avg15threshold");
-    if (!boost::spirit::qi::parse(cpuAvgLoad5.begin(), cpuAvgLoad5.end(), this->cpuAvgLoad5))
+    }
+    try
+    {
+        this->cpuAvgLoad5 = ConvertStringToNumber<float>("/config/sysstat/cpu/avg5threshold");
+    }
+    catch (const invalid_argument &ex)
+    {
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"sysstat/cpu/avg5threshold\" "
+                              + toString(ex.what()));;
         this->cpuAvgLoad5 = 0.7;
-    if (!boost::spirit::qi::parse(cpuAvgLoad15.begin(), cpuAvgLoad15.end(), this->cpuAvgLoad15))
+    }
+    try
+    {
+        this->cpuAvgLoad15 = ConvertStringToNumber<float>("/config/sysstat/cpu/avg15threshold");
+    }
+    catch (const invalid_argument &ex)
+    {
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"sysstat/cpu/avg15threshold\" "
+                              + toString(ex.what()));;
         this->cpuAvgLoad15 = 0.8;
+    }
     this->initLastDetection();
     this->log->writeToLog(LVLDEBUG, this->threadID, "CPUObserver Object instantiated");
 }
@@ -50,15 +79,20 @@ void CPUObserver::handleStreamData(vector<string> &v)
 
 void CPUObserver::checkStreamData()
 {
+    this->log->writeToLog(LVLDEBUG, this->threadID, "Checking stream data...");
     float avg5, avg15;
-    if (cpuLoad.size() == 5)
+    if (this->cpuLoad.size() == 5)
     {
-        bool c1 = boost::spirit::qi::parse(cpuLoad[1].begin(), cpuLoad[1].end(), avg5);
-        bool c2 = boost::spirit::qi::parse(cpuLoad[2].begin(), cpuLoad[2].end(), avg15);
-        if (c1 == false || c2 == false)
+        try
+        {
+            avg5 = ConvertStringToNumber<float>(this->cpuLoad[1]);
+            avg15 = ConvertStringToNumber<float>(this->cpuLoad[2]);
+        }
+        catch (const invalid_argument &ex)
         {
             this->log->writeToLog(LVLERROR, this->threadID, "Can not cast: " +
-                                  cpuLoad[1] + ", " + cpuLoad[2]);
+                                  this->cpuLoad[1] + ", " + this->cpuLoad[2] + ". Checking of avg CPU load failed \n "
+                                  + toString(ex.what()));
             return;
         }
         if (this->checkTimeoutMail(this->mapLastDetection["avg5"]) && avg5 > this->cpuAvgLoad5)
@@ -66,6 +100,7 @@ void CPUObserver::checkStreamData()
             this->mapLastDetection["avg5"] = boost::posix_time::second_clock::universal_time();
             string msg = "Average CPU load measured over the last 5 Minutes exceeded threshold("
                     + toString(this->cpuAvgLoad5) + ") ";
+            this->log->writeToLog(LVLWARN, this->threadID, msg);
             composeMailMessage(msg);
         }
         if (this->checkTimeoutMail(this->mapLastDetection["avg15"]) && avg15 > this->cpuAvgLoad15)
@@ -73,11 +108,13 @@ void CPUObserver::checkStreamData()
             this->mapLastDetection["avg15"] = boost::posix_time::second_clock::universal_time();
             string msg = "Average CPU load measured over the last 15 Minutes exceeded threshold("
                     + toString(this->cpuAvgLoad15) + ") ";
+            this->log->writeToLog(LVLWARN, this->threadID, msg);
             composeMailMessage(msg);
         }
     } else {
         this->log->writeToLog(LVLERROR, this->threadID, "Average CPU load returned wrong number of informations: " +
-                              toString(cpuLoad.size()) + ", expected 5");
+                              toString(this->cpuLoad.size()) + ", expected 5");
+        //TODO: Send email on errors but do not collect data.
     }
     cpuLoad.clear();
 }

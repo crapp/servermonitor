@@ -26,21 +26,56 @@ MemoryObserver::MemoryObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_pt
     this->watch = true;
     this->threadID = 2;
     this->procStreamPath = this->cfg->getConfigValue("/config/sysstat/memory/processFilesystem");
-    string msToWait = this->cfg->getConfigValue("/config/sysstat/memory/pollTime");
-    if (!boost::spirit::qi::parse(msToWait.begin(), msToWait.end(), this->msToWait))
-        this->msToWait = 60000;
-    string nextMailAfter = this->cfg->getConfigValue("/config/email/secondsNextMail");
-    if (!boost::spirit::qi::parse(nextMailAfter.begin(), nextMailAfter.end(), this->nextMailAfter))
+    try
+    {
+        this->msToWait = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/applications/pollTime"));
+    }
+    catch (const invalid_argument &ex)
+    {
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"applications/pollTime\" "
+                              + toString(ex.what()));
+        this->msToWait = 1000;
+    }
+    try
+    {
+        this->nextMailAfter = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/email/secondsNextMail"));
+    }
+    catch (const invalid_argument &ex)
+    {
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"email/secondsNextMail\" "
+                              + toString(ex.what()));;
         this->nextMailAfter = 43200; //every 12 hours
-    string minMemFree = this->cfg->getConfigValue("/config/sysstat/memory/minimumFree");
-    if (!boost::spirit::qi::parse(minMemFree.begin(), minMemFree.end(), this->minMemFree))
-        this->minMemFree = 10000;
-    string maxSwap = this->cfg->getConfigValue("/config/sysstat/memory/maximumSwap");
-    if (!boost::spirit::qi::parse(maxSwap.begin(), maxSwap.end(), this->maxSwap))
-        this->maxSwap = 0;
-    string noValuesToCompare = this->cfg->getConfigValue("/config/sysstat/memory/noValuesCompare");
-    if (!boost::spirit::qi::parse(noValuesToCompare.begin(), noValuesToCompare.end(), this->noValuesToCompare))
+    }
+    try
+    {
+        this->minMemFree = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/sysstat/memory/minimumFree"));
+    }
+    catch (const invalid_argument &ex)
+    {
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"sysstat/memory/minimumFree\" "
+                              + toString(ex.what()));;
+        this->minMemFree = 10000; //100MB
+    }
+    try
+    {
+        this->maxSwap = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/sysstat/memory/maximumSwap"));
+    }
+    catch (const invalid_argument &ex)
+    {
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"sysstat/memory/maximumSwap\" "
+                              + toString(ex.what()));;
         this->noValuesToCompare = 10;
+    }
+    try
+    {
+        this->noValuesToCompare = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/sysstat/memory/noValuesCompare"));
+    }
+    catch (const invalid_argument &ex)
+    {
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"sysstat/memory/noValuesCompare\" "
+                              + toString(ex.what()));;
+        this->noValuesToCompare = 10;
+    }
     this->initLastDetection();
     this->log->writeToLog(LVLDEBUG, this->threadID, "MemoryObserver Object instantiated");
 }
@@ -53,27 +88,35 @@ void MemoryObserver::handleStreamData(vector<string> &v)
         {
             //erase last colon from key
             boost::algorithm::erase_last(v[0], ":");
-            float f;
-            bool cast = boost::spirit::qi::parse(v[1].begin(), v[1].end(), f);
-            if (cast)
+            try
+            {
+                float f = ConvertStringToNumber<float>(v[1]);
                 this->memInfoMap.insert(pair<string, float>(v[0], f));
+            }
+            catch (const invalid_argument &ex)
+            {
+                this->log->writeToLog(LVLERROR, this->threadID, "Can not cast "
+                                      + v[1] + " to float. " + toString(ex.what()));
+            }
         }
-        catch(exception &ex)
+        catch(const exception &ex)
         {
             string s(ex.what());
             this->log->writeToLog(LVLERROR, this->threadID, "Exception: " + s);
         }
         catch(...)
         {
-            this->log->writeToLog(LVLERROR, this->threadID, "MemoryWatch queryProc failed.");
+            this->log->writeToLog(LVLERROR, this->threadID, "MemoryWatch handleStreamData failed with unknown exception.");
         }
     } else {
-        this->log->writeToLog(LVLERROR, this->threadID, "Fuck the duck vector wrong size :/");
+        this->log->writeToLog(LVLERROR, this->threadID, "Vector wrong size, expected size two, got "
+                              + toString(v.size()));
     }
 }
 
 void MemoryObserver::checkStreamData()
 {
+    this->log->writeToLog(LVLDEBUG, this->threadID, "Checking Memory stream data");
     if (!this->memInfoMap.size() > 0)
             return;
     //check if all keys are in the map
@@ -84,20 +127,20 @@ void MemoryObserver::checkStreamData()
     {
         if (this->lastMemFreeValues.size() < this->noValuesToCompare)
         {
+            this->log->writeToLog(LVLDEBUG, this->threadID, "Size of mem value list smaller than values to check, just push_back and continue");
             this->lastMemFreeValues.push_back(this->memInfoMap["MemFree"]);
         } else {
             this->lastMemFreeValues.erase(this->lastMemFreeValues.begin());
             this->lastMemFreeValues.push_back(this->memInfoMap["MemFree"]);
 
             if (this->checkTimeoutMail(this->mapLastDetection["Memory"]))
-            {
                 this->checkMemory();
-            }
         }
         if (this->checkTimeoutMail(this->mapLastDetection["Swap"]))
             this->checkSwap();
     } else {
-        this->log->writeToLog(LVLERROR, this->threadID, "Fuck the duck not in memInfoMap :/");
+        this->log->writeToLog(LVLERROR, this->threadID, "Missing keys in meminfomap :/");
+        //TODO: Send E-Mail!
     }
     this->memInfoMap.clear();
 }
@@ -127,9 +170,11 @@ bool MemoryObserver::checkMemory()
     {
         this->mapLastDetection["Memory"] = boost::posix_time::second_clock::universal_time();
         //TODO: Send E-Mail on low memory!
-        this->log->writeToLog(LVLDEBUG, this->threadID, "Not much memory left");
+        this->log->writeToLog(LVLWARN, this->threadID, "Not much memory left "
+                              + toString(this->memInfoMap["MemTotal"] - (sum/this->lastMemFreeValues.size())));
         return true;
     }
+    this->log->writeToLog(LVLDEBUG, this->threadID, "Memory usage does not exceed threshold");
     return false;
 }
 
@@ -139,8 +184,11 @@ bool MemoryObserver::checkSwap()
     {
         this->mapLastDetection["Swap"] = boost::posix_time::second_clock::universal_time();
         //TODO: Send E-Mail on swap usage!
-        this->log->writeToLog(LVLDEBUG, this->threadID, "System is swapping :/");
+        this->log->writeToLog(LVLWARN, this->threadID, "System swap usage exceeded threshold: "
+                              + toString((this->memInfoMap["SwapTotal"] - this->memInfoMap["SwapFree"]))
+                              + " > " + toString(this->maxSwap));
         return true;
     }
+    this->log->writeToLog(LVLDEBUG, this->threadID, "Swap usage does not exceed threshold");
     return false;
 }

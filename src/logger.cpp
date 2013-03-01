@@ -21,9 +21,15 @@ Logger::Logger(boost::shared_ptr<SMConfig> cfg) : cfg(cfg), doLog(false)
 {
     this->logDir = this->cfg->getConfigValue("/config/logger/logDir");
     this->logLevels = boost::assign::map_list_of (0, "DEBUG") (1, "INFO") (2, "WARN") (3, "ERROR");
-    string maxLogFiles = this->cfg->getConfigValue("/config/logger/maxLogFiles");
-    if (!boost::spirit::qi::parse(maxLogFiles.begin(), maxLogFiles.end(), this->maxLogFiles))
+    try
+    {
+        this->maxLogFiles = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/logger/maxLogFiles"));
+    }
+    catch (const invalid_argument &ex)
+    {
+        cerr << "Can not convert \"logger/maxLogFiles\" " << ex.what() << endl;
         this->maxLogFiles = 3;
+    }
     this->checkLogDir();
     this->setLogFile();
 }
