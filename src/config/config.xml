@@ -38,7 +38,7 @@
         </cpu>
         <memory>
             <!-- check memory usage -->
-            <check>false</check>
+            <check>true</check>
             <processFilesystem>/proc/meminfo</processFilesystem>
             <minimumFree>100000</minimumFree>
             <maximumSwap>0</maximumSwap>

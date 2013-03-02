@@ -73,10 +73,10 @@ bool AppObserver::getData()
             boost::regex pattern("^\\s+[0-9]+\\s+([a-z]+/[0-9]|\\?)\\s+[0-9]{2}:[0-9]{2}:[0-9]{2}\\s+\\w+$");
             if (boost::regex_match(line, pattern))
             {
+                //everything is all right, process is running
                 this->log->writeToLog(LVLDEBUG, this->threadID, "Process " + AppAttrPair.first + " is running");
                 running = true;
-                //everything is all right, process is running
-                continue;
+                break;
             }
         }
         if(!running)

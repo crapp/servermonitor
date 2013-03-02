@@ -165,8 +165,10 @@ bool MemoryObserver::checkMemory()
     {
         sum += f;
     }
-    if ((this->memInfoMap["MemTotal"] - (sum/this->lastMemFreeValues.size()))
-            < this->minMemFree)
+    int avrgMemory = this->memInfoMap["MemTotal"] - (sum/this->lastMemFreeValues.size());
+    this->log->writeToLog(LVLDEBUG,this->threadID, "Average memory usage: "
+                          + toString(avrgMemory));
+    if (avrgMemory < this->minMemFree)
     {
         this->mapLastDetection["Memory"] = boost::posix_time::second_clock::universal_time();
         //TODO: Send E-Mail on low memory!
@@ -180,7 +182,9 @@ bool MemoryObserver::checkMemory()
 
 bool MemoryObserver::checkSwap()
 {
-    if ((this->memInfoMap["SwapTotal"] - this->memInfoMap["SwapFree"]) > this->maxSwap)
+    int swapUsage = this->memInfoMap["SwapTotal"] - this->memInfoMap["SwapFree"];
+    this->log->writeToLog(LVLDEBUG, this->threadID, "Swap usage: " + toString(swapUsage));
+    if (swapUsage > this->maxSwap)
     {
         this->mapLastDetection["Swap"] = boost::posix_time::second_clock::universal_time();
         //TODO: Send E-Mail on swap usage!

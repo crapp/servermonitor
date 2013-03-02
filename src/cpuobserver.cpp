@@ -50,7 +50,7 @@ CPUObserver::CPUObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logg
     }
     try
     {
-        this->cpuAvgLoad5 = ConvertStringToNumber<float>("/config/sysstat/cpu/avg5threshold");
+        this->cpuAvgLoad5 = ConvertStringToNumber<float>(this->cfg->getConfigValue("/config/sysstat/cpu/avg5threshold"));
     }
     catch (const invalid_argument &ex)
     {
@@ -60,7 +60,7 @@ CPUObserver::CPUObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logg
     }
     try
     {
-        this->cpuAvgLoad15 = ConvertStringToNumber<float>("/config/sysstat/cpu/avg15threshold");
+        this->cpuAvgLoad15 = ConvertStringToNumber<float>(this->cfg->getConfigValue("/config/sysstat/cpu/avg15threshold"));
     }
     catch (const invalid_argument &ex)
     {
