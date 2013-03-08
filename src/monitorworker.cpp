@@ -55,7 +55,6 @@ int MonitorWorker::startMonitoring()
     log->writeToLog(LVLDEBUG, 0, "NoOfActiveThreads: " + toString(noOfActiveThreads));
     //howto start a thread in a class
     //boost::thread t1(boost::bind(&MemoryWatch::memoryWatchThread, this));
-    //t1.join();
     this->ipcNamedPipe();
     return 0;
 }
@@ -63,7 +62,6 @@ int MonitorWorker::startMonitoring()
 void MonitorWorker::ipcNamedPipe()
 {
     int status, fifo, res;
-    int bytes_read = 0;
     if (boost::filesystem::exists(this->fifopath))
     {
         try
@@ -74,7 +72,11 @@ void MonitorWorker::ipcNamedPipe()
         {
             string s(ex.what());
             this->log->writeToLog(LVLERROR, this->threadID,
-                                  "Can not delete existing named pipe: " + s);
+                                  "Can not delete existing named pipe: "
+                                  + s);
+            this->mail->sendmail(this->threadID, false, "Can not delete existing named pipe",
+                                 "Can not delete existing named pipe, stopping service \n"
+                                 + s);
             this->stopService();
         }
     }
@@ -82,40 +84,62 @@ void MonitorWorker::ipcNamedPipe()
     if (status != 0)
     {
         this->log->writeToLog(LVLERROR, this->threadID, "Can not create named pipe: " +
-                              this->fifopath +  " -- Error Number: " + toString(errno));
+                              this->fifopath + " -- Error Number: " + toString(errno));
+        this->mail->sendmail(this->threadID, false, "Can not create named pipe",
+                             "Can not create named pipe" + this->fifopath
+                             + " -- Error Number: " + toString(errno) + "\nStopping service");
         this->stopService();
     }
+    this->log->writeToLog(LVLINFO, this->threadID, "Starting to read from fifo");
     while(1)
     {
-        this->log->writeToLog(LVLINFO, this->threadID, "Starting to read from fifo");
         char buf[80];
         memset(&buf[0], 0, sizeof(buf)); //reset/initialize char array
-        fifo = open(this->fifopath.c_str(), O_RDONLY); //this is blocking until we receive something
+        fifo = open(this->fifopath.c_str(), O_RDONLY | O_NONBLOCK); //O_NONBLOCK prevents blocking
         string pipeString = "";
         do
         {
             res = read(fifo, buf, sizeof(buf));
-            bytes_read += res;
             if (res > 0)
             {
                 string s(buf, res-1);
                 pipeString += s;
-            } else if (res == -1) {
-                this->log->writeToLog(LVLERROR, this->threadID, "Can not read from named pipe: "
-                                      + this->fifopath +  " -- Error Number: " + toString(errno));
+            } else if (res < 0) {
+                //check errno here
+                if (errno == 11)
+                {
+                    //if errno is EAGAIN set res to 1 and the let the while loop run once more to get the data in the pipe.
+                    res = 1;
+                } else {
+                    this->log->writeToLog(LVLERROR, this->threadID, "Can not read from named pipe: "
+                                          + this->fifopath + " -- Error Number: "
+                                          + toString(errno));
+                    this->mail->sendmail(this->threadID, false, "Can not read from named pipe",
+                                         "Can not read from named pipe: " + this->fifopath
+                                         + " -- Error Number: " + toString(errno));
+                }
             }
         } while (res > 0);
-        bytes_read = 0;
-
-        this->log->writeToLog(LVLINFO, this->threadID, "Received message from fifo: "
-                              + pipeString);
-
         close(fifo);
-        if (boost::algorithm::to_lower_copy(pipeString) == "exit")
+        if(pipeString.length() > 0)
         {
+            this->log->writeToLog(LVLINFO, this->threadID, "Received message from fifo: "
+                              + pipeString);
+            if (boost::algorithm::to_lower_copy(pipeString) == "exit")
+            {
+                this->stopService();
+                break;
+            }
+        }
+        if (noOfActiveThreads == 0)
+        {
+            this->log->writeToLog(LVLWARN, this->threadID, "All observer threads have stopped. Shutting down serverMonitor");
+            this->mail->sendmail(this->threadID, false, "Shutting down serverMonitor",
+                                 "All observer threads have stopped. Shutting down serverMonitor");
             this->stopService();
             break;
         }
+        boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
     }
 }
 
@@ -129,7 +153,11 @@ void MonitorWorker::stopService()
     catch(const boost::filesystem::filesystem_error &ex)
     {
         string s(ex.what());
-        this->log->writeToLog(LVLERROR, this->threadID, "Can not delete existing named pipe: " + s);
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not delete existing named pipe: "
+                              + s);
+        this->mail->sendmail(this->threadID, false, "Can not delete existing named pipe",
+                             "Can not delete existing named pipe while stopping service \n"
+                             + s);
     }
     if (this->cpuwatchThread != 0)
     {

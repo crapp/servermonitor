@@ -45,6 +45,8 @@ AppObserver::AppObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logg
         this->nextMailAfter = 43200; //every 12 hours
     }
     this->appsToCheck = this->cfg->getConfigMap("/config/applications//app");
+    if(this->appsToCheck.empty())
+        this->watch = false;
     this->initLastDetection();
     this->log->writeToLog(LVLDEBUG, this->threadID, "AppObserver Object instantiated");
 }
@@ -57,19 +59,25 @@ bool AppObserver::getData()
     {
         if (AppAttrPair.second[2] == "false")
             continue;
+        if (!this->checkTimeoutMail(this->mapLastDetection[AppAttrPair.first]))
+            continue;
         this->log->writeToLog(LVLDEBUG, this->threadID, "Checking process " + AppAttrPair.first);
         string cmd = "ps -C " + AppAttrPair.first + " 2>&1";
         string psOut = execSysCmd(cmd.c_str());
         this->log->writeToLog(LVLDEBUG, this->threadID, "Command output: " + psOut);
-        if(psOut.compare("ERROR") == 0) //TODO: Write an E-Mail, should we really quit the loop?
+        if(psOut.compare("ERROR") == 0) //TODO: Should we really quit the loop?
+        {
+            this->mail->sendmail(this->threadID, false, "Command execution failed",
+                                 "Could not execute command" + cmd + "\n\n"
+                                 + psOut + "\n\n Will stop AppObserver Thread");
+            this->log->writeToLog(LVLERROR, this->threadID, "Restart command failed: " + psOut);
             return false;
+        }
         vector<string> lines;
         boost::algorithm::split_regex(lines, psOut, boost::regex("\\n+"));
         bool running = false;
         BOOST_FOREACH(const string &line, lines)
         {
-            if (!this->checkTimeoutMail(this->mapLastDetection[AppAttrPair.first]))
-                continue;
             boost::regex pattern("^\\s+[0-9]+\\s+([a-z]+/[0-9]|\\?)\\s+[0-9]{2}:[0-9]{2}:[0-9]{2}\\s+\\w+$");
             if (boost::regex_match(line, pattern))
             {
@@ -83,20 +91,30 @@ bool AppObserver::getData()
         {
             if (AppAttrPair.second[1] == "false")
             {
-                //TODO: E-Mail Message with hint no restart
+                this->mail->sendmail(this->threadID, false, "Application not running",
+                                     "Application " + AppAttrPair.first
+                                     + " is not running. " + "Restart is disabled!");
                 this->log->writeToLog(LVLWARN, this->threadID, AppAttrPair.first + " is not running. Automatic restart is disabled.");
             } else {
                 this->log->writeToLog(LVLWARN, this->threadID, "Process " + AppAttrPair.first + " is not running, trying to restart.");
                 cmd = AppAttrPair.second[3] + " 2>&1";
                 psOut = execSysCmd(cmd.c_str());
-                this->log->writeToLog(LVLINFO, this->threadID, "Restart command ouput: " + psOut);
-                if(psOut.compare("ERROR") == 0) //TODO: Write an E-Mail, should we really quit the loop?
+                if(psOut.compare("ERROR") == 0) //TODO: Should we really quit the loop?
                 {
+                    this->mail->sendmail(this->threadID, false, "Command execution failed",
+                                         "Could not execute command" + cmd + "\n\n"
+                                         + psOut + "\n\n Will stop AppObserver Thread");
                     this->log->writeToLog(LVLERROR, this->threadID, "Restart command failed: " + psOut);
-                    continue;
+                    return false;
                 }
-                //TODO: Write E-Mail with output of cmd and that the process was not running
+                this->log->writeToLog(LVLINFO, this->threadID, "Application " + AppAttrPair.first
+                                      + " was not running. Tried to restart the application:\n "
+                                      + psOut);
+                this->mail->sendmail(this->threadID, false, "Restarted an application", "Application " + AppAttrPair.first
+                                     + " was not running. Tried to restart the application:\n "
+                                     + psOut);
             }
+            this->mapLastDetection[AppAttrPair.first] = boost::posix_time::second_clock::universal_time();
         }
     }
     return true;

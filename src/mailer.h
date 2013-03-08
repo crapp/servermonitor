@@ -32,7 +32,8 @@ class Mailer
 {
 public:
     Mailer(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log);
-    void sendmail(const string &subject, const int &threadID, string &message);
+    //TODO: Why can't this method accept the last para as reference?
+    void sendmail(const int &threadID, bool data, const string &subject, string message);
 private:
     boost::shared_ptr<SMConfig> cfg;
     boost::shared_ptr<Logger> log;

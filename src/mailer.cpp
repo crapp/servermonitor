@@ -24,12 +24,13 @@ Mailer::Mailer(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log) :
 //define static mutex
 boost::mutex Mailer::mtx;
 
-void Mailer::sendmail(const string &subject, const int &threadID, string &message) {
-
+void Mailer::sendmail(const int &threadID, bool data, const string &subject, string message)
+{
     //make this email sender thread safe with a simple lock
     boost::lock_guard<boost::mutex> lockGuard(Mailer::mtx);
 
-    collectData(message, threadID);
+    if (data)
+        this->collectData(message, threadID);
 
     try {
         //Open mail command with popen
@@ -49,7 +50,7 @@ void Mailer::sendmail(const string &subject, const int &threadID, string &messag
     } catch (...) {
         this->log->writeToLog(LVLERROR, threadID, "Can not send email, general exception occured");
     }
-    this->log->writeToLog(LVLINFO, threadID, "Mail was sended successfully");
+    this->log->writeToLog(LVLINFO, threadID, "Mail has been sended successfully");
 }
 
 void Mailer::collectData(string &msg, const int &threadID)

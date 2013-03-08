@@ -91,8 +91,13 @@ void CPUObserver::checkStreamData()
         catch (const invalid_argument &ex)
         {
             this->log->writeToLog(LVLERROR, this->threadID, "Can not cast: " +
-                                  this->cpuLoad[1] + ", " + this->cpuLoad[2] + ". Checking of avg CPU load failed \n "
+                                  this->cpuLoad[1] + ", " + this->cpuLoad[2]
+                                  + ". Checking of avg CPU load failed \n "
                                   + toString(ex.what()));
+            this->mail->sendmail(this->threadID, false, "Can not cast values", "Can not cast: "
+                                 + this->cpuLoad[1] + ", " + this->cpuLoad[2]
+                                 + ". Checking of avg CPU load failed \n "
+                                 + toString(ex.what()));
             return;
         }
         if (this->checkTimeoutMail(this->mapLastDetection["avg5"]) && avg5 > this->cpuAvgLoad5)
@@ -114,7 +119,7 @@ void CPUObserver::checkStreamData()
     } else {
         this->log->writeToLog(LVLERROR, this->threadID, "Average CPU load returned wrong number of informations: " +
                               toString(this->cpuLoad.size()) + ", expected 5");
-        //TODO: Send email on errors but do not collect data.
+        this->watch = false;
     }
     cpuLoad.clear();
 }
@@ -136,5 +141,6 @@ void CPUObserver::composeMailMessage(string &msg)
         msg += s + " ";
     }
     this->log->writeToLog(LVLDEBUG, this->threadID, msg);
-    //TODO: Collect data and send e-mail!
+    this->mail->sendmail(this->threadID, true, "Average CPU load exceeded threshold",
+                         msg);
 }

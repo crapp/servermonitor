@@ -23,8 +23,7 @@
 #include <map>
 #include "globalutils.h"
 #include "pugixml/pugixml.hpp" //xml Parser
-//TODO: Can not include logger, then we need some forward declaration. Do we need this?
-//#include "logger.h"
+
 
 using namespace std;
 
@@ -40,9 +39,12 @@ public:
     SMConfig();
     string getConfigValue(const string &xpath);
     map< string, vector<string> > getConfigMap(const string &xpath);
+
+    bool getConfigFileOK();
 private:
     string configFile;
     pugi::xml_document cfgdoc;
+    bool configFileOK;
 };
 
 #endif // SMCONFIG_H

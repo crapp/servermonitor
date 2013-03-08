@@ -44,7 +44,7 @@ void Logger::writeToLog(const int &debugLevel, const int &threadID, const string
     if (doLog)
     {
         // check if date is still current date
-        //FIXME: Remove the addition of one day, needed to debug the code
+        // + boost::gregorian::days(1) --> add one day
         if (this->logDate < boost::gregorian::day_clock::local_day())
         {
             this->setLogFile();
@@ -63,6 +63,7 @@ void Logger::writeToLog(const int &debugLevel, const int &threadID, const string
         } else {
             cerr << "Can not write to logfile " << this->logFile << endl;
         }
+        //TODO: Add an alternative logger to stdout/stderr?
 //        if (debugLevel == LVLDEBUG)
 //        {
 //            cout << boost::posix_time::to_simple_string(dt) << ": " <<

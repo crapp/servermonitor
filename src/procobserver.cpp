@@ -39,7 +39,6 @@ bool ProcObserver::getData()
                 //do a regex split on all whitespaces and not only single ones
                 boost::algorithm::split_regex(v, line, boost::regex(" +"));
             }
-            //TODO: we need to catch specific boost exceptions
             catch(const exception &ex)
             {
                 this->log->writeToLog(LVLERROR, this->threadID, ex.what());
@@ -53,7 +52,11 @@ bool ProcObserver::getData()
         this->checkStreamData();
         this->procStream.close();
     } else {
-        this->log->writeToLog(LVLERROR, this->threadID, "Can not open: " + this->procStreamPath);
+        this->mail->sendmail(this->threadID, false, "Can not open file in proc FS", "Can not open "
+                             + this->procStreamPath + "\n" + "This thread will be stopped");
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not open: "
+                              + this->procStreamPath);
+        //No need to write an email here. Observer Object is doing that for us.
         return false;
     }
     return true;

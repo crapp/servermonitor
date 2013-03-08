@@ -43,6 +43,9 @@ void Observer::threadLoop()
     }
     noOfActiveThreads--;
     this->log->writeToLog(LVLWARN, this->threadID, "Thread stopped because of an error");
+    this->mail->sendmail(this->threadID, false, "Thread stopped unexpectedly",
+                         "Thread stopped because of an error. Number if still active Threads"
+                         + toString(noOfActiveThreads));
 }
 
 bool Observer::checkTimeoutMail(const boost::posix_time::ptime &pt)

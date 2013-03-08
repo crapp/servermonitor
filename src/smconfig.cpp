@@ -24,10 +24,11 @@ SMConfig::SMConfig()
     } else {
         this->configFile = "/etc/serverMonitor/config.xml";
     }
+    this->configFileOK = false;
     pugi::xml_parse_result result = this->cfgdoc.load_file(this->configFile.c_str());
-    if (!result)
+    if (result)
     {
-        //TODO: Log error and quit application
+        this->configFileOK = true;
     }
 }
 
@@ -43,7 +44,6 @@ string SMConfig::getConfigValue(const string &xpath)
     }
     catch (pugi::xpath_exception &ex)
     {
-        //TODO: Patch this to the logger and end application
         cerr << ex.result() << endl;
         cerr << ex.what() << endl;
     }
@@ -72,9 +72,13 @@ map< string, vector<string> > SMConfig::getConfigMap(const string &xpath)
     }
     catch (pugi::xpath_exception &ex)
     {
-        //TODO: Patch this to the logger and end application
         cout << ex.result() << endl;
         cout << ex.what() << endl;
     }
     return appMap;
+}
+
+bool SMConfig::getConfigFileOK()
+{
+    return this->configFileOK;
 }

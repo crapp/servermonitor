@@ -95,6 +95,8 @@ void MemoryObserver::handleStreamData(vector<string> &v)
             }
             catch (const invalid_argument &ex)
             {
+                this->mail->sendmail(this->threadID, false, "Error, could not cast value",
+                                     "Could not cast "+ v[1] + " to float");
                 this->log->writeToLog(LVLERROR, this->threadID, "Can not cast "
                                       + v[1] + " to float. " + toString(ex.what()));
             }
@@ -140,7 +142,6 @@ void MemoryObserver::checkStreamData()
             this->checkSwap();
     } else {
         this->log->writeToLog(LVLERROR, this->threadID, "Missing keys in meminfomap :/");
-        //TODO: Send E-Mail!
     }
     this->memInfoMap.clear();
 }
@@ -171,9 +172,10 @@ bool MemoryObserver::checkMemory()
     if (avrgMemory < this->minMemFree)
     {
         this->mapLastDetection["Memory"] = boost::posix_time::second_clock::universal_time();
-        //TODO: Send E-Mail on low memory!
-        this->log->writeToLog(LVLWARN, this->threadID, "Not much memory left "
-                              + toString(this->memInfoMap["MemTotal"] - (sum/this->lastMemFreeValues.size())));
+        this->mail->sendmail(this->threadID, true, "Average Memory usage exceeded threshold",
+                             "The average Memory usage is to high " + toString(avrgMemory));
+        this->log->writeToLog(LVLWARN, this->threadID, "Average Memory usage exceeded threshold "
+                              + toString(avrgMemory));
         return true;
     }
     this->log->writeToLog(LVLDEBUG, this->threadID, "Memory usage does not exceed threshold");
@@ -187,7 +189,10 @@ bool MemoryObserver::checkSwap()
     if (swapUsage > this->maxSwap)
     {
         this->mapLastDetection["Swap"] = boost::posix_time::second_clock::universal_time();
-        //TODO: Send E-Mail on swap usage!
+        this->mail->sendmail(this->threadID, true, "System swap usage exceeded threshold",
+                             "System swap usage exceeded threshold: "
+                             + toString((this->memInfoMap["SwapTotal"] - this->memInfoMap["SwapFree"]))
+                             + " > " + toString(this->maxSwap));
         this->log->writeToLog(LVLWARN, this->threadID, "System swap usage exceeded threshold: "
                               + toString((this->memInfoMap["SwapTotal"] - this->memInfoMap["SwapFree"]))
                               + " > " + toString(this->maxSwap));

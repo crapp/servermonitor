@@ -33,6 +33,13 @@ extern int noOfActiveThreads;
 int main (int argc, char *argv[]) {
     //our config object that we share with other objects
     boost::shared_ptr<SMConfig> cfg(new SMConfig());
+    if (!cfg->getConfigFileOK())
+    {
+        cerr << "ServerMontior could not open the config file." << endl
+             << "Should be here /etc/serverMonitor/config.xml" << endl
+             << "Also check if the xml is well formed." << endl;
+        return 1;
+    }
     boost::shared_ptr<Logger> log(new Logger(cfg));
     boost::shared_ptr<Mailer> mail(new Mailer(cfg, log));
     string version(VERSION);
