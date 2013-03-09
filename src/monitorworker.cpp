@@ -22,6 +22,17 @@ MonitorWorker::MonitorWorker(boost::shared_ptr<SMConfig> cfg,
 {
     this->threadID = 0;
     this->fifopath = this->cfg->getConfigValue("/config/common/fifoPath");
+    try
+    {
+        this->daysNextSyshealth = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/observer/syshealth/pollTime"));
+    }
+    catch (const invalid_argument &ex)
+    {
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"syshealth/pollTime\" "
+                              + toString(ex.what()));;
+        this->daysNextSyshealth = 7; //once a week
+    }
+    this->syshealthDate = boost::gregorian::day_clock::local_day() + boost::gregorian::days(this->daysNextSyshealth);
 }
 
 MonitorWorker::~MonitorWorker()
@@ -31,23 +42,23 @@ MonitorWorker::~MonitorWorker()
 int MonitorWorker::startMonitoring()
 {
     //starting cpu, memory and app observer
-    if (this->cfg->getConfigValue("/config/sysstat/cpu/check") == "true")
+    if (this->cfg->getConfigValue("/config/observer/sysstat/cpu/check") == "true")
     {
         this->log->writeToLog(LVLINFO, this->threadID, "CPU Observer is activated");
         this->cpuwatch = boost::make_shared<CPUObserver>(this->cfg, this->log, this->mail);
         this->cpuwatchThread = boost::make_shared<boost::thread>(boost::bind(&CPUObserver::threadLoop, this->cpuwatch));
         noOfActiveThreads++;
     }
-    if (this->cfg->getConfigValue("/config/sysstat/memory/check") == "true")
+    if (this->cfg->getConfigValue("/config/observer/sysstat/memory/check") == "true")
     {
         this->log->writeToLog(LVLINFO, this->threadID, "Memory Observer is activated");
         this->mwatch = boost::make_shared<MemoryObserver>(this->cfg, this->log, this->mail);
         this->mwatchThread = boost::make_shared<boost::thread>(boost::bind(&MemoryObserver::threadLoop, this->mwatch));
         noOfActiveThreads++;
     }
-    if (this->cfg->getConfigValue("/config/applications/check") == "true")
+    if (this->cfg->getConfigValue("/config/observer/applications/check") == "true")
     {
-        this->log->writeToLog(LVLINFO, this->threadID, "Applications Observer is activated");
+        this->log->writeToLog(LVLINFO, this->threadID, "observer/applications Observer is activated");
         this->appwatch = boost::make_shared<AppObserver>(this->cfg, this->log, this->mail);
         this->appwatchThread = boost::make_shared<boost::thread>(boost::bind(&AppObserver::threadLoop, this->appwatch));
         noOfActiveThreads++;
@@ -138,6 +149,16 @@ void MonitorWorker::ipcNamedPipe()
                                  "All observer threads have stopped. Shutting down serverMonitor");
             this->stopService();
             break;
+        }
+        if (this->cfg->getConfigValue("/config/observer/syshealth/check").compare("true") == 0)
+        {
+            if (this->syshealthDate == boost::gregorian::day_clock::local_day())
+            {
+                this->syshealthDate = boost::gregorian::day_clock::local_day()
+                        + boost::gregorian::days(this->daysNextSyshealth);
+                this->mail->sendmail(this->threadID, true, "System status overview",
+                                     "");
+            }
         }
         boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
     }

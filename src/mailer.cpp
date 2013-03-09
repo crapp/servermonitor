@@ -24,15 +24,15 @@ Mailer::Mailer(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log) :
 //define static mutex
 boost::mutex Mailer::mtx;
 
-void Mailer::sendmail(const int &threadID, bool data, const string &subject, string message)
+void Mailer::sendmail(const int &threadID, bool data, string subject, string message)
 {
     //make this email sender thread safe with a simple lock
     boost::lock_guard<boost::mutex> lockGuard(Mailer::mtx);
 
     if (data)
         this->collectData(message, threadID);
-
     try {
+        subject.insert(0, "Machine: " + machineName() + " -- ");
         //Open mail command with popen
         FILE *mta = popen(this->cfg->getConfigValue("/config/email/mailCommand").c_str(), "w");
         if (mta != 0) {
@@ -47,7 +47,13 @@ void Mailer::sendmail(const int &threadID, bool data, const string &subject, str
             this->log->writeToLog(LVLERROR, threadID, "Can not send an email, was not able to open mail command " +
                                   this->cfg->getConfigValue("/config/email/mailCommand"));
         }
-    } catch (...) {
+    }
+    catch (exception &ex)
+    {
+        this->log->writeToLog(LVLERROR, threadID, "Can not send email, "
+                              + toString(ex.what()));
+    }
+    catch (...) {
         this->log->writeToLog(LVLERROR, threadID, "Can not send email, general exception occured");
     }
     this->log->writeToLog(LVLINFO, threadID, "Mail has been sended successfully");
@@ -72,4 +78,13 @@ void Mailer::collectData(string &msg, const int &threadID)
         this->log->writeToLog(LVLWARN, threadID, "No data collectors defined");
     }
     msg += "\n\nFinished collecting data";
+}
+
+string Mailer::machineName()
+{
+    string s = "";
+    char *p = getenv("HOSTNAME");
+    if (p != NULL)
+        s = p;
+    return s;
 }

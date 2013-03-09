@@ -2,7 +2,7 @@
 <config>
     <common>
         <!-- Where to store the named pipe for the program. The service needs write permissions -->
-        <fifoPath>/tmp/servermonitor.fifo</fifoPath>        
+        <fifoPath>/tmp/servermonitor.fifo</fifoPath> 
     </common>
     <email>
         <!-- EMail command -->
@@ -14,7 +14,8 @@
         <dataCollectors>
             <!-- Here you can define as much collectors as you want, the informations will be appended to the e-mail -->
             <collector name="free -m" cmd="free -m"></collector>
-            <collector name="ps" cmd="ps -eo pcpu,pid,user,args | sort -r -k1"></collector>
+            <collector name="psCpu" cmd="ps -eo pcpu,pid,user,args | sort -r -k1"></collector>
+            <collector name="psMem" cmd="ps -eo pmem,pid,user,args | sort -r -k1"></collector>
             <collector name="df -m" cmd="df -m"></collector>
         </dataCollectors>
     </email>
@@ -26,37 +27,45 @@
         <!-- All events with this log level and above will be logged -->
         <minLogLevel>DEBUG</minLogLevel>
     </logger>
-    <sysstat>
-        <cpu>
-            <!-- check cpu avg load -->
-            <check>true</check>            
-            <processFilesystem>/proc/loadavg</processFilesystem>
-            <avg5threshold>1.5</avg5threshold>
-            <avg15threshold>1.8</avg15threshold>
-            <!--  how often to poll the average cpu load in milliseconds -->
-            <pollTime>60000</pollTime>
-        </cpu>
-        <memory>
-            <!-- check memory usage -->
+    <observer>
+        <syshealth>
+            <!-- Collects system data and sends it per email -->
             <check>true</check>
-            <processFilesystem>/proc/meminfo</processFilesystem>
-            <minimumFree>100000</minimumFree>
-            <maximumSwap>0</maximumSwap>
-            <noValuesCompare>20</noValuesCompare>
-            <!--  how often to poll memory usage in milliseconds -->
-            <pollTime>60000</pollTime>
-        </memory>
-    </sysstat>
-    <applications>
-        <!-- check applications in general -->
-        <check>true</check>
-        <!-- how often to poll if the application is alive -->
-        <pollTime>10000</pollTime>
-        <!-- you can define as many applications as you want. don't change the order of the attributes -->
-        <app name="postfix" restart="true" check="true" restartcmd="/etc/init.d/postfix start" /> 
-        <app name="ntpd" restart="false" check="true" restartcmd="/etc/init.d/ntpd start" />  
-        <app name="apache2" restart="true" check="true" restartcmd="/etc/init.d/apache2 start" />
-        <app name="mysqld" restart="true" check="false" restartcmd="/etc/init.d/mysqld start" />
-        <app name="sshd" restart="true" check="false" restartcmd="/etc/init.d/ssh start" />        
-    </applications>
+            <!-- standard value 7 days == once a week -->
+            <pollTime>7</pollTime>
+        </syshealth>
+        <sysstat>
+            <cpu>
+                <!-- check cpu avg load -->
+                <check>true</check>            
+                <processFilesystem>/proc/loadavg</processFilesystem>
+                <avg5threshold>1.5</avg5threshold>
+                <avg15threshold>1.8</avg15threshold>
+                <!--  how often to poll the average cpu load in milliseconds -->
+                <pollTime>60000</pollTime>
+            </cpu>
+            <memory>
+                <!-- check memory usage -->
+                <check>true</check>
+                <processFilesystem>/proc/meminfo</processFilesystem>
+                <minimumFree>100000</minimumFree>
+                <maximumSwap>0</maximumSwap>
+                <noValuesCompare>20</noValuesCompare>
+                <!--  how often to poll memory usage in milliseconds -->
+                <pollTime>60000</pollTime>
+            </memory>
+        </sysstat>
+        <applications>
+            <!-- check applications in general -->
+            <check>true</check>
+            <!-- how often to poll if the application is alive -->
+            <pollTime>10000</pollTime>
+            <!-- you can define as many applications as you want. don't change the order of the attributes -->
+            <app name="postfix" restart="true" check="true" restartcmd="/etc/init.d/postfix start" /> 
+            <app name="ntpd" restart="false" check="true" restartcmd="/etc/init.d/ntpd start" />  
+            <app name="apache2" restart="true" check="true" restartcmd="/etc/init.d/apache2 start" />
+            <app name="mysqld" restart="true" check="false" restartcmd="/etc/init.d/mysqld start" />
+            <app name="sshd" restart="true" check="false" restartcmd="/etc/init.d/ssh start" />        
+        </applications>
+    </observer>
 </config>

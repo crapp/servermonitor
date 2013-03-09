@@ -24,6 +24,7 @@
 #include <errno.h>                      //error numbers
 #include <sys/types.h>                  //for what?
 #include <sys/stat.h>                   //for mkfifo
+#include <boost/date_time/gregorian_calendar.hpp>
 #include <boost/thread.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
@@ -57,6 +58,9 @@ private:
 
     int threadID;
     string fifopath;
+
+    int daysNextSyshealth;
+    boost::gregorian::date syshealthDate;
 
     void ipcNamedPipe();
     void stopService();

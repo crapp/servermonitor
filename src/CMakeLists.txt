@@ -5,11 +5,15 @@ set (serverMonitor_VERSION_MAJOR 1)
 set (serverMonitor_VERSION_MINOR 0)
 set (ConfigDir /etc/serverMonitor)
 
+
+#CMAKE_CXX_FLAGS will be used for any build type
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -g -std=c++11")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -g")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -g")
 
 #set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /opt/local/lib)
 #set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} /opt/local/include)
+
+message("Using Build Type: " ${CMAKE_BUILD_TYPE})
 
 #define a macro which we can use to set XCode properties.
 macro (set_xcode_property TARGET XCODE_PROPERTY XCODE_VALUE)
@@ -71,5 +75,7 @@ if(Boost_FOUND)
         RUNTIME DESTINATION bin
     )
     INSTALL(FILES ${CONFIG_FILES} DESTINATION ${ConfigDir})
+else()
+    message("Could not find boost >= 1.42.0")
 endif(Boost_FOUND)
 

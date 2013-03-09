@@ -24,17 +24,17 @@ CPUObserver::CPUObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logg
     this->mail = mail;
     this->log = log;
     this->threadID = 1;
-    this->procStreamPath = this->cfg->getConfigValue("/config/sysstat/cpu/processFilesystem");
+    this->procStreamPath = this->cfg->getConfigValue("/config/observer/sysstat/cpu/processFilesystem");
     //TODO: How do we handle empty config values?
     if (this->procStreamPath == "")
         this->procStreamPath = "/proc/loadavg";
     try
     {
-        this->msToWait = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/applications/pollTime"));
+        this->msToWait = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/observer/applications/pollTime"));
     }
     catch (const invalid_argument &ex)
     {
-        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"applications/pollTime\" "
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"observer/applications/pollTime\" "
                               + toString(ex.what()));
         this->msToWait = 1000;
     }
@@ -50,21 +50,21 @@ CPUObserver::CPUObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logg
     }
     try
     {
-        this->cpuAvgLoad5 = ConvertStringToNumber<float>(this->cfg->getConfigValue("/config/sysstat/cpu/avg5threshold"));
+        this->cpuAvgLoad5 = ConvertStringToNumber<float>(this->cfg->getConfigValue("/config/observer/sysstat/cpu/avg5threshold"));
     }
     catch (const invalid_argument &ex)
     {
-        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"sysstat/cpu/avg5threshold\" "
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"observer/sysstat/cpu/avg5threshold\" "
                               + toString(ex.what()));;
         this->cpuAvgLoad5 = 0.7;
     }
     try
     {
-        this->cpuAvgLoad15 = ConvertStringToNumber<float>(this->cfg->getConfigValue("/config/sysstat/cpu/avg15threshold"));
+        this->cpuAvgLoad15 = ConvertStringToNumber<float>(this->cfg->getConfigValue("/config/observer/sysstat/cpu/avg15threshold"));
     }
     catch (const invalid_argument &ex)
     {
-        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"sysstat/cpu/avg15threshold\" "
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"observer/sysstat/cpu/avg15threshold\" "
                               + toString(ex.what()));;
         this->cpuAvgLoad15 = 0.8;
     }

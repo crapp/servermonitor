@@ -25,14 +25,14 @@ MemoryObserver::MemoryObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_pt
     this->mail = mail;
     this->watch = true;
     this->threadID = 2;
-    this->procStreamPath = this->cfg->getConfigValue("/config/sysstat/memory/processFilesystem");
+    this->procStreamPath = this->cfg->getConfigValue("/config/observer/sysstat/memory/processFilesystem");
     try
     {
-        this->msToWait = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/applications/pollTime"));
+        this->msToWait = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/observer/applications/pollTime"));
     }
     catch (const invalid_argument &ex)
     {
-        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"applications/pollTime\" "
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"observer/applications/pollTime\" "
                               + toString(ex.what()));
         this->msToWait = 1000;
     }
@@ -48,31 +48,31 @@ MemoryObserver::MemoryObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_pt
     }
     try
     {
-        this->minMemFree = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/sysstat/memory/minimumFree"));
+        this->minMemFree = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/observer/sysstat/memory/minimumFree"));
     }
     catch (const invalid_argument &ex)
     {
-        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"sysstat/memory/minimumFree\" "
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"observer/sysstat/memory/minimumFree\" "
                               + toString(ex.what()));;
         this->minMemFree = 10000; //100MB
     }
     try
     {
-        this->maxSwap = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/sysstat/memory/maximumSwap"));
+        this->maxSwap = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/observer/sysstat/memory/maximumSwap"));
     }
     catch (const invalid_argument &ex)
     {
-        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"sysstat/memory/maximumSwap\" "
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"observer/sysstat/memory/maximumSwap\" "
                               + toString(ex.what()));;
         this->noValuesToCompare = 10;
     }
     try
     {
-        this->noValuesToCompare = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/sysstat/memory/noValuesCompare"));
+        this->noValuesToCompare = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/observer/sysstat/memory/noValuesCompare"));
     }
     catch (const invalid_argument &ex)
     {
-        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"sysstat/memory/noValuesCompare\" "
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"observer/sysstat/memory/noValuesCompare\" "
                               + toString(ex.what()));;
         this->noValuesToCompare = 10;
     }

@@ -26,11 +26,11 @@ AppObserver::AppObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logg
     this->watch = true;
     try
     {
-        this->msToWait = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/applications/pollTime"));
+        this->msToWait = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/observer/applications/pollTime"));
     }
     catch (const invalid_argument &ex)
     {
-        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"applications/pollTime\" "
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"observer/applications/pollTime\" "
                               + toString(ex.what()));
         this->msToWait = 1000;
     }
@@ -44,7 +44,7 @@ AppObserver::AppObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logg
                               + toString(ex.what()));;
         this->nextMailAfter = 43200; //every 12 hours
     }
-    this->appsToCheck = this->cfg->getConfigMap("/config/applications//app");
+    this->appsToCheck = this->cfg->getConfigMap("/config/observer/applications//app");
     if(this->appsToCheck.empty())
         this->watch = false;
     this->initLastDetection();
