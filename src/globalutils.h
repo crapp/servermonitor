@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <stdexcept>      // std::invalid_argument
 
-#define DEVELOPMENT 1
+#define DEVELOPMENT 0
 #define VERSION "1.0"
 
 using namespace std;
