@@ -7,15 +7,15 @@
     <email>
         <!-- EMail command -->
         <mailCommand>/usr/sbin/sendmail -t</mailCommand>
-        <mailTo>saedelaere@elkbase.localdomain</mailTo>
-        <mailFrom>root@elkbase.localdomain</mailFrom>
+        <mailTo>someone@localhost</mailTo>
+        <mailFrom>servermonitor@localhost</mailFrom>
         <!-- Time to wait in seconds until we send the next mail -->
         <secondsNextMail>43200</secondsNextMail>
         <dataCollectors>
             <!-- Here you can define as much collectors as you want, the informations will be appended to the e-mail -->
             <collector name="free -m" cmd="free -m"></collector>
             <collector name="psCpu" cmd="ps -eo pcpu,pid,user,args | sort -r -k1"></collector>
-            <collector name="psMem" cmd="ps -eo pmem,pid,user,args | sort -r -k1"></collector>
+            <collector name="psMem" cmd="ps -eo pmem,rss,vsize,pid,user,args | sort -r -k1"></collector>
             <collector name="df -m" cmd="df -m"></collector>
         </dataCollectors>
     </email>
@@ -36,11 +36,11 @@
         </syshealth>
         <sysstat>
             <cpu>
-                <!-- check cpu avg load -->
+                <!-- check cpu avg load, increase this values if you have more than cpu/core -->
                 <check>true</check>            
                 <processFilesystem>/proc/loadavg</processFilesystem>
-                <avg5threshold>1.5</avg5threshold>
-                <avg15threshold>1.8</avg15threshold>
+                <avg5threshold>0.5</avg5threshold>
+                <avg15threshold>0.8</avg15threshold>
                 <!--  how often to poll the average cpu load in milliseconds -->
                 <pollTime>60000</pollTime>
             </cpu>
@@ -50,6 +50,7 @@
                 <processFilesystem>/proc/meminfo</processFilesystem>
                 <minimumFree>100000</minimumFree>
                 <maximumSwap>0</maximumSwap>
+                <!-- ServerMonitor stores the last values of free memory speciefied here and computes the average -->
                 <noValuesCompare>20</noValuesCompare>
                 <!--  how often to poll memory usage in milliseconds -->
                 <pollTime>60000</pollTime>
@@ -61,6 +62,8 @@
             <!-- how often to poll if the application is alive -->
             <pollTime>10000</pollTime>
             <!-- you can define as many applications as you want. don't change the order of the attributes -->
+            <!-- name -> name of the process, restart -> restart the application, check -> check if the application is running,
+            restartcmd -> the command to restart the application -->
             <app name="postfix" restart="true" check="true" restartcmd="/etc/init.d/postfix start" /> 
             <app name="ntpd" restart="false" check="true" restartcmd="/etc/init.d/ntpd start" />  
             <app name="apache2" restart="true" check="true" restartcmd="/etc/init.d/apache2 start" />

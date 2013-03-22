@@ -83,8 +83,6 @@ void Mailer::collectData(string &msg, const int &threadID)
 string Mailer::machineName()
 {
     string s = "";
-    char *p = getenv("HOSTNAME");
-    if (p != NULL)
-        s = p;
+    s = execSysCmd("hostname -f");
     return s;
 }
