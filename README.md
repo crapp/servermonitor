@@ -1,4 +1,4 @@
 servermonitor
 =============
 
-Linux service to monitor some system values and send e-mails to admins
+Linux service to monitor system values like cpu load or memory usage and if configured daemons are running. 
