@@ -64,7 +64,7 @@ MemoryObserver::MemoryObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_pt
     {
         this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"observer/sysstat/memory/maximumSwap\" "
                               + toString(ex.what()));;
-        this->noValuesToCompare = 10;
+        this->maxSwap = 0;
     }
     try
     {
