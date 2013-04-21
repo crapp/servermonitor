@@ -59,9 +59,8 @@ bool AppObserver::getData()
     {
         if (AppAttrPair.second[2] == "false")
             continue;
-        if (!this->checkTimeoutMail(this->mapLastDetection[AppAttrPair.first]))
-            continue;
-        this->log->writeToLog(LVLDEBUG, this->threadID, "Checking process " + AppAttrPair.first);
+
+        this->log->writeToLog(LVLINFO, this->threadID, "Checking process " + AppAttrPair.first);
         string cmd = "ps -C " + AppAttrPair.first + " 2>&1";
         string psOut = execSysCmd(cmd.c_str());
         this->log->writeToLog(LVLDEBUG, this->threadID, "Command output: " + psOut);
@@ -82,21 +81,27 @@ bool AppObserver::getData()
             if (boost::regex_match(line, pattern))
             {
                 //everything is all right, process is running
-                this->log->writeToLog(LVLDEBUG, this->threadID, "Process " + AppAttrPair.first + " is running");
+                this->log->writeToLog(LVLINFO, this->threadID, "Process " + AppAttrPair.first + " is running");
                 running = true;
                 break;
             }
         }
         if(!running)
         {
+            this->log->writeToLog(LVLWARN, this->threadID, AppAttrPair.first + " is not running.");
+            if (!this->checkTimeoutMail(this->mapLastDetection[AppAttrPair.first]))
+            {
+                this->log->writeToLog(LVLWARN, this->threadID, "Won't notify user via E-Mail because timeout not reached");
+                continue;
+            }
             if (AppAttrPair.second[1] == "false")
             {
                 this->mail->sendmail(this->threadID, false, "Application not running",
                                      "Application " + AppAttrPair.first
                                      + " is not running. " + "Restart is disabled!");
-                this->log->writeToLog(LVLWARN, this->threadID, AppAttrPair.first + " is not running. Automatic restart is disabled.");
+                this->log->writeToLog(LVLWARN, this->threadID, AppAttrPair.first + " Automatic restart is disabled.");
             } else {
-                this->log->writeToLog(LVLWARN, this->threadID, "Process " + AppAttrPair.first + " is not running, trying to restart.");
+                this->log->writeToLog(LVLWARN, this->threadID, "Trying to restart process " + AppAttrPair.first);
                 cmd = AppAttrPair.second[3] + " 2>&1";
                 psOut = execSysCmd(cmd.c_str());
                 if(psOut.compare("ERROR") == 0) //TODO: Should we really quit the loop?

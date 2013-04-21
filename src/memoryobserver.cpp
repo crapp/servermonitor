@@ -167,7 +167,7 @@ bool MemoryObserver::checkMemory()
         sum += f;
     }
     int avrgMemory = this->memInfoMap["MemTotal"] - (sum/this->lastMemFreeValues.size());
-    this->log->writeToLog(LVLDEBUG,this->threadID, "Average memory usage: "
+    this->log->writeToLog(LVLINFO,this->threadID, "Average memory usage: "
                           + toString(avrgMemory));
     if (avrgMemory < this->minMemFree)
     {
@@ -178,14 +178,14 @@ bool MemoryObserver::checkMemory()
                               + toString(avrgMemory));
         return true;
     }
-    this->log->writeToLog(LVLDEBUG, this->threadID, "Memory usage does not exceed threshold");
+    this->log->writeToLog(LVLINFO, this->threadID, "Memory usage does not exceed threshold");
     return false;
 }
 
 bool MemoryObserver::checkSwap()
 {
     int swapUsage = this->memInfoMap["SwapTotal"] - this->memInfoMap["SwapFree"];
-    this->log->writeToLog(LVLDEBUG, this->threadID, "Swap usage: " + toString(swapUsage));
+    this->log->writeToLog(LVLINFO, this->threadID, "Swap usage: " + toString(swapUsage));
     if (swapUsage > this->maxSwap)
     {
         this->mapLastDetection["Swap"] = boost::posix_time::second_clock::universal_time();
@@ -198,6 +198,6 @@ bool MemoryObserver::checkSwap()
                               + " > " + toString(this->maxSwap));
         return true;
     }
-    this->log->writeToLog(LVLDEBUG, this->threadID, "Swap usage does not exceed threshold");
+    this->log->writeToLog(LVLINFO, this->threadID, "Swap usage does not exceed threshold");
     return false;
 }

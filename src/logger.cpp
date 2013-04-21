@@ -39,7 +39,7 @@ boost::mutex Logger::mtx;
 
 void Logger::writeToLog(const int &debugLevel, const int &threadID, const string &msg)
 {
-    //lock the logger with a lock_guard. thhis will be freed if it runs out of scope
+    //lock the logger with a lock_guard. this will be freed if it runs out of scope
     boost::lock_guard<boost::mutex> lockGuard(Logger::mtx);
     if (doLog)
     {
@@ -88,8 +88,8 @@ void Logger::checkLogDir()
         vector<string> pathParts;
         boost::algorithm::split(pathParts, this->logDir, boost::algorithm::is_any_of("/"));
         string path = "";
-        // create every level of the logdir path if it not exists. if something gows wrong we set doLog to false.
-        // this mwans there will be not logging activity anymore.
+        // create every level of the logdir path if it not exists. if something goes wrong we set doLog to false.
+        // this means there will be no logging activity anymore.
         for (vector<string>::const_iterator it = pathParts.begin(); it != pathParts.end(); it++)
         {
             if (*it == "")

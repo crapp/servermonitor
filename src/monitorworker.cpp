@@ -152,10 +152,14 @@ void MonitorWorker::ipcNamedPipe()
         }
         if (this->cfg->getConfigValue("/config/observer/syshealth/check").compare("true") == 0)
         {
+            string nextHealthMailDate = boost::gregorian::to_iso_extended_string(this->syshealthDate);
+            this->log->writeToLog(LVLDEBUG, this->threadID, "Next system status E-Mail on: " + nextHealthMailDate);
             if (this->syshealthDate == boost::gregorian::day_clock::local_day())
             {
                 this->syshealthDate = boost::gregorian::day_clock::local_day()
                         + boost::gregorian::days(this->daysNextSyshealth);
+                this->log->writeToLog(LVLINFO, this->threadID, "Sending system status E-Mail");
+                this->log->writeToLog(LVLINFO, this->threadID, "Next E-Mail: " + boost::gregorian::to_iso_extended_string(this->syshealthDate));
                 this->mail->sendmail(this->threadID, true, "System status overview",
                                      "");
             }

@@ -54,6 +54,8 @@ bool Observer::checkTimeoutMail(const boost::posix_time::ptime &pt)
     boost::posix_time::time_duration td = ptimeNow - pt;
     this->log->writeToLog(LVLDEBUG, this->threadID, "TimeoutMail duration total seconds: "
                           + toString(td.total_seconds()));
+    this->log->writeToLog(LVLDEBUG, this->threadID, "Threshold for new mail: "
+                          + toString(this->nextMailAfter));
 
     if (td.total_seconds() < this->nextMailAfter)
     {
