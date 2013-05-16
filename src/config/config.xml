@@ -43,6 +43,8 @@
                 <avg15threshold>0.8</avg15threshold>
                 <!--  how often to poll the average cpu load in milliseconds -->
                 <pollTime>60000</pollTime>
+                <!-- Time to wait in seconds until we send the next mail -->
+                <secondsNextMail>3600</secondsNextMail>
             </cpu>
             <memory>
                 <!-- check memory usage -->
@@ -50,10 +52,12 @@
                 <processFilesystem>/proc/meminfo</processFilesystem>
                 <minimumFree>100000</minimumFree>
                 <maximumSwap>0</maximumSwap>
-                <!-- ServerMonitor stores the last values of free memory speciefied here and computes the average -->
+                <!-- ServerMonitor stores the last values of free memory specified here and computes the average -->
                 <noValuesCompare>20</noValuesCompare>
                 <!--  how often to poll memory usage in milliseconds -->
                 <pollTime>60000</pollTime>
+                <!-- Time to wait in seconds until we send the next mail -->
+                <secondsNextMail>10800</secondsNextMail>
             </memory>
         </sysstat>
         <applications>
@@ -61,6 +65,8 @@
             <check>true</check>
             <!-- how often to poll if the application is alive -->
             <pollTime>10000</pollTime>
+            <!-- Time to wait in seconds until we send the next mail -->
+            <secondsNextMail>10800</secondsNextMail>
             <!-- you can define as many applications as you want. don't change the order of the attributes -->
             <!-- name -> name of the process, restart -> restart the application, check -> check if the application is running,
             restartcmd -> the command to restart the application -->

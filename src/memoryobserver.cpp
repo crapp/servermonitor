@@ -28,17 +28,17 @@ MemoryObserver::MemoryObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_pt
     this->procStreamPath = this->cfg->getConfigValue("/config/observer/sysstat/memory/processFilesystem");
     try
     {
-        this->msToWait = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/observer/applications/pollTime"));
+        this->msToWait = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/observer/sysstat/memory/pollTime"));
     }
     catch (const invalid_argument &ex)
     {
-        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"observer/applications/pollTime\" "
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"observer/sysstat/memory/pollTime\" "
                               + toString(ex.what()));
         this->msToWait = 1000;
     }
     try
     {
-        this->nextMailAfter = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/email/secondsNextMail"));
+        this->nextMailAfter = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/observer/sysstat/memory/secondsNextMail"));
     }
     catch (const invalid_argument &ex)
     {

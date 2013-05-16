@@ -36,7 +36,7 @@ AppObserver::AppObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logg
     }
     try
     {
-        this->nextMailAfter = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/email/secondsNextMail"));
+        this->nextMailAfter = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/observer/applications/secondsNextMail"));
     }
     catch (const invalid_argument &ex)
     {
