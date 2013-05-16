@@ -25,9 +25,9 @@ endmacro (set_xcode_property)
 if(APPLE)
     #set_xcode_property(GDALTester CLANG_CXX_LANGUAGE_STANDARD "c++11")
     #set_xcode_property(GDALTester CLANG_CXX_LIBRARY "libc++")
-    set_xcode_property(serverMonitor LIBRARY_SEARCH_PATHS[arch=*] "/opt/local/lib")
-    set_xcode_property(serverMonitor HEADER_SEARCH_PATHS[arch=*]
-        "/opt/local/include")
+    #set_xcode_property(serverMonitor LIBRARY_SEARCH_PATHS[arch=*] "/opt/local/lib")
+    #set_xcode_property(serverMonitor HEADER_SEARCH_PATHS[arch=*]
+    #    "/opt/local/include")
     message("Setting some XCode specific options")
 endif(APPLE)
 

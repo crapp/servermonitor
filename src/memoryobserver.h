@@ -33,7 +33,7 @@ private:
     list<float> lastMemFreeValues;
     int minMemFree;
     int maxSwap;
-    uint noValuesToCompare;
+    unsigned int noValuesToCompare;
 
     void handleStreamData(vector<string> &v);
     void checkStreamData();

@@ -102,21 +102,25 @@ void CPUObserver::checkStreamData()
         }
         if (avg5 > this->cpuAvgLoad5)
         {
-            this->mapLastDetection["avg5"] = boost::posix_time::second_clock::universal_time();
             string msg = "Average CPU load measured over the last 5 Minutes exceeded threshold("
                     + toString(this->cpuAvgLoad5) + ") ";
             this->log->writeToLog(LVLWARN, this->threadID, msg);
             if (this->checkTimeoutMail(this->mapLastDetection["avg5"]))
+            {
+                this->mapLastDetection["avg5"] = boost::posix_time::second_clock::universal_time();
                 composeMailMessage(msg);
+            }
         }
         if (avg15 > this->cpuAvgLoad15)
-        {
-            this->mapLastDetection["avg15"] = boost::posix_time::second_clock::universal_time();
+        {            
             string msg = "Average CPU load measured over the last 15 Minutes exceeded threshold("
                     + toString(this->cpuAvgLoad15) + ") ";
             this->log->writeToLog(LVLWARN, this->threadID, msg);
             if (this->checkTimeoutMail(this->mapLastDetection["avg15"]))
+            {
+                this->mapLastDetection["avg15"] = boost::posix_time::second_clock::universal_time();
                 composeMailMessage(msg);
+            }
         }
     } else {
         this->log->writeToLog(LVLERROR, this->threadID, "Average CPU load returned wrong number of informations: " +
