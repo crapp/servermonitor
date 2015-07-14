@@ -20,7 +20,7 @@
 Logger::Logger(boost::shared_ptr<SMConfig> cfg) : cfg(cfg), doLog(false)
 {
     this->logDir = this->cfg->getConfigValue("/config/logger/logDir");
-    this->logLevels = boost::assign::map_list_of (0, "DEBUG") (1, "INFO") (2, "WARN") (3, "ERROR");
+    this->logLevels = {{0, "DEBUG"}, {1, "INFO"}, {2, "WARN"}, {3, "ERROR"}};
     try
     {
         this->maxLogFiles = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/logger/maxLogFiles"));

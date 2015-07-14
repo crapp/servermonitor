@@ -21,8 +21,9 @@
 #include <string>
 #include <vector>
 #include <map>
+
 #include "globalutils.h"
-#include "pugixml/pugixml.hpp" //xml Parser
+#include "pugixml.hpp" //xml Parser
 
 
 using namespace std;

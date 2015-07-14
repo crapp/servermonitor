@@ -22,7 +22,7 @@
 #include <fstream>
 #include <string>
 #include <algorithm>
-#include <boost/assign/list_of.hpp>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/config.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
@@ -31,6 +31,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
+
 #include "smconfig.h"
 
 #define LVLDEBUG 0

@@ -1,35 +1,52 @@
 #TODO: Adding a Version Number and Configured Header File
 #http://cmake.org/cmake/help/cmake_tutorial.html
 #The version number.
-set (serverMonitor_VERSION_MAJOR 1)
-set (serverMonitor_VERSION_MINOR 0)
-set (ConfigDir /etc/serverMonitor)
+set (servermonitor_VERSION_MAJOR 2)
+set (servermonitor_VERSION_MINOR 0)
+set (servermonitor_VERSION_MINOR 0)
+
+set (CONFIGDIR "/etc" CACHE PATH "Define the directory where the config file is located")
+
+# Initialize CXXFLAGS.
+set(CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS} -Wall -std=c++11")
+set(CMAKE_CXX_FLAGS_DEBUG          "-Wextra -O0 -g")
+set(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE        "-O4 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
 
 
-#CMAKE_CXX_FLAGS will be used for any build type
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -g -std=c++11")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -g")
+# Compiler-specific C++11 activation.
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
+    execute_process(
+        COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
+    if (NOT (GCC_VERSION VERSION_GREATER 4.7 OR GCC_VERSION VERSION_EQUAL 4.7))
+        message(FATAL_ERROR "${PROJECT_NAME} requires g++ 4.7 or greater.")
+    endif ()
+elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+else ()
+    message(FATAL_ERROR "Your C++ compiler does not support C++11.")
+endif ()
 
-#set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /opt/local/lib)
-#set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} /opt/local/include)
 
-message("Using Build Type: " ${CMAKE_BUILD_TYPE})
+set(Boost_USE_STATIC_LIBS OFF)
+set(Boost_USE_MULTITHREADED ON) 
+set(Boost_USE_STATIC_RUNTIME OFF)
+find_package(Boost 1.42.0 COMPONENTS system filesystem thread date_time regex REQUIRED)
 
-#define a macro which we can use to set XCode properties.
-macro (set_xcode_property TARGET XCODE_PROPERTY XCODE_VALUE)
-    set_property (TARGET ${TARGET} PROPERTY XCODE_ATTRIBUTE_${XCODE_PROPERTY}
-        ${XCODE_VALUE})
-endmacro (set_xcode_property)
+# configure a header file to pass some of the CMake settings
+# to the source code
+configure_file (
+    config.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/config.h
+    @ONLY
+)
 
-#if apple then use our macro to set XCode properties
-if(APPLE)
-    #set_xcode_property(GDALTester CLANG_CXX_LANGUAGE_STANDARD "c++11")
-    #set_xcode_property(GDALTester CLANG_CXX_LIBRARY "libc++")
-    set_xcode_property(serverMonitor LIBRARY_SEARCH_PATHS[arch=*] "/opt/local/lib")
-    set_xcode_property(serverMonitor HEADER_SEARCH_PATHS[arch=*]
-        "/opt/local/include")
-    message("Setting some XCode specific options")
-endif(APPLE)
+include_directories(
+    ${CMAKE_CURRENT_BINARY_DIR} # add bin dir because of the config header file
+    ${Boost_INCLUDE_DIRS}
+    ${CMAKE_SOURCE_DIR}/thirdparty/pugixml-1.6/src
+)
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
@@ -58,24 +75,11 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/smconfig.h
 )
 
-set(Boost_USE_STATIC_LIBS OFF)
-set(Boost_USE_MULTITHREADED ON) 
-set(Boost_USE_STATIC_RUNTIME OFF)
-find_package(Boost 1.42.0 COMPONENTS system filesystem thread date_time regex)
+add_executable(serverMonitor ${HEADERS} ${SOURCE} ${PUGIHEADERS} ${PUGISOURCE})
+target_link_libraries(serverMonitor ${Boost_LIBRARIES})
 
-if(Boost_FOUND)
-    message("Boost found in: " ${Boost_INCLUDE_DIRS})
-    include_directories(${Boost_INCLUDE_DIRS})
-    add_subdirectory(config)
-    add_subdirectory(pugixml)
-    add_executable(serverMonitor ${HEADERS} ${SOURCE} ${PUGIHEADERS} ${PUGISOURCE})
-    target_link_libraries(serverMonitor ${Boost_LIBRARIES})
-
-    INSTALL(TARGETS serverMonitor
-        RUNTIME DESTINATION bin
-    )
-    INSTALL(FILES ${CONFIG_FILES} DESTINATION ${ConfigDir})
-else()
-    message("Could not find boost >= 1.42.0")
-endif(Boost_FOUND)
+INSTALL(TARGETS serverMonitor
+    RUNTIME DESTINATION bin
+)
+INSTALL(FILES ${CONFIG_FILES} DESTINATION ${CONFIGDIR})
 

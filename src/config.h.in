@@ -1,0 +1,11 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+// define version
+#define SERVERMONITOR_VERSION_MAJOR "@servermonitor_VERSION_MAJOR@"
+#define SERVERMONITOR_VERSION_MINOR "@servermonitor_VERSION_MINOR@"
+#define SERVERMONITOR_VERSION_PATCH "@servermonitor_VERSION_PATCH@"
+
+#define CONFIGPATH "@CONFIGDIR@"
+
+#endif  // CONFIG_H"

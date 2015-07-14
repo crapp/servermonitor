@@ -21,9 +21,6 @@ Mailer::Mailer(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log) :
 {
 }
 
-//define static mutex
-boost::mutex Mailer::mtx;
-
 void Mailer::sendmail(const int &threadID, bool data, string subject, string message)
 {
     //make this email sender thread safe with a simple lock

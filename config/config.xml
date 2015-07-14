@@ -36,7 +36,7 @@
         </syshealth>
         <sysstat>
             <cpu>
-                <!-- check cpu avg load, increase this values if you have more than cpu/core -->
+                <!-- check cpu avg load, increase this values if you have more than one cpu/core -->
                 <check>true</check>            
                 <processFilesystem>/proc/loadavg</processFilesystem>
                 <avg5threshold>0.5</avg5threshold>
