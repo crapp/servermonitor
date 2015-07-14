@@ -1,6 +1,5 @@
-#TODO: Adding a Version Number and Configured Header File
-#http://cmake.org/cmake/help/cmake_tutorial.html
-#The version number.
+
+#The version number of servermonitor
 set (servermonitor_VERSION_MAJOR 2)
 set (servermonitor_VERSION_MINOR 0)
 set (servermonitor_VERSION_MINOR 0)

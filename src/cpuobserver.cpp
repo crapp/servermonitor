@@ -30,23 +30,23 @@ CPUObserver::CPUObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logg
         this->procStreamPath = "/proc/loadavg";
     try
     {
-        this->msToWait = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/observer/applications/pollTime"));
+        this->msToWait = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/observer/sysstat/cpu/pollTime"));
     }
     catch (const invalid_argument &ex)
     {
-        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"observer/applications/pollTime\" "
+        this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"observer/sysstat/cpu/pollTime\" "
                               + toString(ex.what()));
         this->msToWait = 1000;
     }
     try
     {
-        this->nextMailAfter = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/email/secondsNextMail"));
+        this->nextMailAfter = ConvertStringToNumber<int>(this->cfg->getConfigValue("/config/observer/sysstat/cpu/secondsNextMail"));
     }
     catch (const invalid_argument &ex)
     {
         this->log->writeToLog(LVLERROR, this->threadID, "Can not parse \"email/secondsNextMail\" "
                               + toString(ex.what()));;
-        this->nextMailAfter = 43200; //every 12 hours
+        this->nextMailAfter = 3600; //every 12 hours
     }
     try
     {
@@ -102,21 +102,25 @@ void CPUObserver::checkStreamData()
         }
         if (avg5 > this->cpuAvgLoad5)
         {
-            this->mapLastDetection["avg5"] = boost::posix_time::second_clock::universal_time();
             string msg = "Average CPU load measured over the last 5 Minutes exceeded threshold("
                     + toString(this->cpuAvgLoad5) + ") ";
             this->log->writeToLog(LVLWARN, this->threadID, msg);
             if (this->checkTimeoutMail(this->mapLastDetection["avg5"]))
+            {
+                this->mapLastDetection["avg5"] = boost::posix_time::second_clock::universal_time();
                 composeMailMessage(msg);
+            }
         }
         if (avg15 > this->cpuAvgLoad15)
-        {
-            this->mapLastDetection["avg15"] = boost::posix_time::second_clock::universal_time();
+        {            
             string msg = "Average CPU load measured over the last 15 Minutes exceeded threshold("
                     + toString(this->cpuAvgLoad15) + ") ";
             this->log->writeToLog(LVLWARN, this->threadID, msg);
             if (this->checkTimeoutMail(this->mapLastDetection["avg15"]))
+            {
+                this->mapLastDetection["avg15"] = boost::posix_time::second_clock::universal_time();
                 composeMailMessage(msg);
+            }
         }
     } else {
         this->log->writeToLog(LVLERROR, this->threadID, "Average CPU load returned wrong number of informations: " +
