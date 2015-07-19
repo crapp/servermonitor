@@ -1,5 +1,5 @@
 //  ServerMonitor is a service to monitor a linux system
-//  Copyright (C) 2013  Christian Rapp
+//  Copyright (C) 2013 - 2015  Christian Rapp
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include <vector>
 #include <string>
 #include <map>
+
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string_regex.hpp>
@@ -31,37 +32,42 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/thread.hpp>
+
+#include <simplelogger/simplelogger.h>
+
 #include "smconfig.h"
-#include "logger.h"
 #include "globalutils.h"
 #include "mailer.h"
 
 class Observer
 {
 public:
-    Observer();
+    // Observer();
     virtual ~Observer();
-    void threadLoop();
+    void start();
 
 protected:
+    Observer(boost::shared_ptr<SMConfig> cfg,
+             boost::shared_ptr<SimpleLogger> log,
+             boost::shared_ptr<Mailer> mail);
+
     bool watch;
     int msToWait;
     int threadID;
     int nextMailAfter;
 
     boost::shared_ptr<SMConfig> cfg;
-    boost::shared_ptr<Logger> log;
+    boost::shared_ptr<SimpleLogger> log;
     boost::shared_ptr<Mailer> mail;
-    ifstream procStream;
-    map<string, boost::posix_time::ptime> mapLastDetection;
-    string procStreamPath;
+    std::ifstream procStream;
+    std::map<std::string, boost::posix_time::ptime> mapLastDetection;
+    std::string procStreamPath;
 
     bool checkTimeoutMail(const boost::posix_time::ptime &pt);
     virtual bool getData() = 0;
-    virtual void handleStreamData(vector<string> &v) = 0;
+    virtual void handleStreamData(std::vector<std::string> &v) = 0;
     virtual void checkStreamData() = 0;
     virtual void initLastDetection() = 0;
-
 };
 
-#endif // OBSERVER_H
+#endif  // OBSERVER_H

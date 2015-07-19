@@ -1,5 +1,5 @@
 //  ServerMonitor is a service to monitor a linux system
-//  Copyright (C) 2013  Christian Rapp
+//  Copyright (C) 2013 - 2015  Christian Rapp
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -16,69 +16,63 @@
 
 #include "smconfig.h"
 
-SMConfig::SMConfig()
+SMConfig::SMConfig(const std::string &configPath)
 {
-    if (DEVELOPMENT == 1)
-    {
-        this->configFile = "../../src/config/config.xml";
-    } else {
-        this->configFile = "/etc/serverMonitor/config.xml";
-    }
+#ifdef DEVELOPMENT
+    this->configFile = "../../config/config.xml";
+#else
+    this->configFile = configPath + "/config.xml";
+#endif
     this->configFileOK = false;
-    pugi::xml_parse_result result = this->cfgdoc.load_file(this->configFile.c_str());
-    if (result)
-    {
+    pugi::xml_parse_result result =
+        this->cfgdoc.load_file(this->configFile.c_str());
+    if (result) {
         this->configFileOK = true;
     }
 }
 
-string SMConfig::getConfigValue(const string &xpath)
+std::string SMConfig::getConfigValue(const std::string &xpath)
 {
     try {
         pugi::xpath_node node = this->cfgdoc.select_single_node(xpath.c_str());
-        if (node != 0)
-        {
+        if (node != 0) {
             pugi::xml_text t = node.node().text();
             return t.as_string();
         }
-    }
-    catch (pugi::xpath_exception &ex)
-    {
-        cerr << ex.result() << endl;
-        cerr << ex.what() << endl;
+    } catch (pugi::xpath_exception &ex) {
+        std::cerr << ex.result() << std::endl;
+        std::cerr << ex.what() << std::endl;
     }
     return "";
 }
 
-map< string, vector<string> > SMConfig::getConfigMap(const string &xpath)
+std::map<std::string, std::vector<std::string>> SMConfig::getConfigMap(
+    const std::string &xpath)
 {
-    map< string, vector<string> > appMap;
+    std::map<std::string, std::vector<std::string>> appMap;
     try {
         pugi::xpath_node_set nodes = this->cfgdoc.select_nodes(xpath.c_str());
-        if (nodes.size() > 0)
-        {
-            //TODO: How can we loop over a pugi::xpath_node_set with BOOST_FOREACH
-            for (pugi::xpath_node_set::const_iterator it = nodes.begin(); it != nodes.end(); it++)
-            {
+        if (nodes.size() > 0) {
+            // TODO: How can we loop over a pugi::xpath_node_set with
+            // BOOST_FOREACH
+            for (pugi::xpath_node_set::const_iterator it = nodes.begin();
+                 it != nodes.end(); it++) {
                 pugi::xpath_node nd = *it;
-                vector<string> attribs;
-                for (pugi::xml_attribute_iterator ait = nd.node().attributes_begin(); ait != nd.node().attributes_end(); ++ait)
-                {
+                std::vector<std::string> attribs;
+                for (pugi::xml_attribute_iterator ait =
+                         nd.node().attributes_begin();
+                     ait != nd.node().attributes_end(); ++ait) {
                     attribs.push_back(ait->value());
                 }
-                appMap.insert(pair< string, vector<string> >(attribs[0], attribs));
+                appMap.insert(std::pair<std::string, std::vector<std::string>>(
+                    attribs[0], attribs));
             }
         }
-    }
-    catch (pugi::xpath_exception &ex)
-    {
-        cout << ex.result() << endl;
-        cout << ex.what() << endl;
+    } catch (pugi::xpath_exception &ex) {
+        std::cout << ex.result() << std::endl;
+        std::cout << ex.what() << std::endl;
     }
     return appMap;
 }
 
-bool SMConfig::getConfigFileOK()
-{
-    return this->configFileOK;
-}
+bool SMConfig::getConfigFileOK() { return this->configFileOK; }

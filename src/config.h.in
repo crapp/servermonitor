@@ -2,9 +2,9 @@
 #define CONFIG_H
 
 // define version
-#define SERVERMONITOR_VERSION_MAJOR "@servermonitor_VERSION_MAJOR@"
-#define SERVERMONITOR_VERSION_MINOR "@servermonitor_VERSION_MINOR@"
-#define SERVERMONITOR_VERSION_PATCH "@servermonitor_VERSION_PATCH@"
+#define VERSION_MAJOR "@servermonitor_VERSION_MAJOR@"
+#define VERSION_MINOR "@servermonitor_VERSION_MINOR@"
+#define VERSION_PATCH "@servermonitor_VERSION_PATCH@"
 
 #define CONFIGPATH "@CONFIGDIR@"
 

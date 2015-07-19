@@ -1,5 +1,5 @@
 //  ServerMonitor is a service to monitor a linux system
-//  Copyright (C) 2013  Christian Rapp
+//  Copyright (C) 2013 - 2015  Christian Rapp
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -16,46 +16,51 @@
 
 #include "procobserver.h"
 
-ProcObserver::ProcObserver()
+ProcObserver::ProcObserver(boost::shared_ptr<SMConfig> cfg,
+                           boost::shared_ptr<SimpleLogger> log,
+                           boost::shared_ptr<Mailer> mail)
+    : Observer(cfg, log, mail)
+
 {
 }
 
+ProcObserver::~ProcObserver() {}
+
 bool ProcObserver::getData()
 {
-    this->log->writeToLog(LVLDEBUG, this->threadID, "Open stream " + this->procStreamPath);
-    this->procStream.open(this->procStreamPath.c_str(), ifstream::in);
-    if (this->procStream.is_open())
-    {
-        string line;
-        while(this->procStream.good())
-        {
+    this->log->writeLog(SimpleLogger::logLevels::DEBUG,
+                        "Open stream " + this->procStreamPath);
+    this->procStream.open(this->procStreamPath.c_str(), std::ifstream::in);
+    if (this->procStream.is_open()) {
+        std::string line;
+        while (this->procStream.good()) {
             getline(this->procStream, line);
             if (boost::algorithm::trim_copy(line) == "")
                 continue;
-            this->log->writeToLog(LVLDEBUG, this->threadID, "Received line: " + line);
-            vector<string> v;
-            try
-            {
-                //do a regex split on all whitespaces and not only single ones
+            this->log->writeLog(SimpleLogger::logLevels::DEBUG,
+                                "Received line: " + line);
+            std::vector<std::string> v;
+            try {
+                // do a regex split on all whitespaces and not only single ones
                 boost::algorithm::split_regex(v, line, boost::regex(" +"));
-            }
-            catch(const exception &ex)
-            {
-                this->log->writeToLog(LVLERROR, this->threadID, ex.what());
-            }
-            catch(...)
-            {
-                this->log->writeToLog(LVLERROR, this->threadID, "Could not split stram data with regex_split. General exception occured");
+            } catch (const std::exception &ex) {
+                this->log->writeLog(SimpleLogger::logLevels::ERROR, ex.what());
+            } catch (...) {
+                this->log->writeLog(SimpleLogger::logLevels::ERROR,
+                                    "Could not split stream data with "
+                                    "regex_split. General exception occured");
             }
             this->handleStreamData(v);
         }
         this->checkStreamData();
         this->procStream.close();
     } else {
-        this->mail->sendmail(this->threadID, false, "Can not open file in proc FS", "Can not open "
-                             + this->procStreamPath + "\n" + "This thread will be stopped");
-        this->log->writeToLog(LVLERROR, this->threadID, "Can not open: "
-                              + this->procStreamPath);
+        this->mail->sendmail(this->threadID, false,
+                             "Can not open file in proc FS",
+                             "Can not open " + this->procStreamPath + "\n" +
+                                 "This thread will be stopped");
+        this->log->writeLog(SimpleLogger::logLevels::ERROR,
+                            "Can not open: " + this->procStreamPath);
         //No need to write an email here. Observer Object is doing that for us.
         return false;
     }

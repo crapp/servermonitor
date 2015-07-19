@@ -1,5 +1,5 @@
 //  ServerMonitor is a service to monitor a linux system
-//  Copyright (C) 2013  Christian Rapp
+//  Copyright (C) 2013 - 2015  Christian Rapp
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -22,9 +22,16 @@
 class ProcObserver : public Observer
 {
 public:
-    ProcObserver();
+    // ProcObserver();
+    virtual ~ProcObserver();
+
+protected:
+    ProcObserver(boost::shared_ptr<SMConfig> cfg,
+                 boost::shared_ptr<SimpleLogger> log,
+                 boost::shared_ptr<Mailer> mail);
+
 private:
     bool getData();
 };
 
-#endif // PROCOBSERVER_H
+#endif  // PROCOBSERVER_H

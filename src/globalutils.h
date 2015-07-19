@@ -1,5 +1,5 @@
 //  ServerMonitor is a service to monitor a linux system
-//  Copyright (C) 2013  Christian Rapp
+//  Copyright (C) 2013 - 2015  Christian Rapp
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -19,46 +19,12 @@
 
 #include <string>
 #include <sstream>
-#include <stdio.h>
-#include <stdexcept>      // std::invalid_argument
+#include <cstdio>
+#include <stdexcept>  // std::invalid_argument
 
-#define DEVELOPMENT 0
-#define VERSION "1.0"
-
-using namespace std;
+#define DEVELOPMENT
 
 extern int noOfActiveThreads;
-
-/**
- *toString template
- */
-template <typename T>
-string toString(T t)
-{
-    ostringstream os;
-    os << t;
-    return os.str();
-}
-
-/**
- *
- *Use this template with "Explicit template argument specification"
- */
-template<typename T>
-T ConvertStringToNumber(const string& str)
-{
-    istringstream ss(str);
-    T number = 0; //set a default value so we don't get some uninitialized garbage
-    ss >> number;
-
-    if (ss.fail( ))
-    {
-        // don't forget to catch this exception
-        throw invalid_argument("ConvertStringToNumber:" + str);
-    }
-
-    return number;
-}
 
 /**
  * @brief executes a shell command and returns it's ouput as string
@@ -66,23 +32,20 @@ T ConvertStringToNumber(const string& str)
  * @return returns ERROR when something failed, otherwise a string with the command
  * ouput will be returned.
  */
-inline string execSysCmd(const char* cmd) {
-    //NOTE: Append export LC_MESSAGES=C && to all commands?!
-    FILE *pipe = popen(cmd, "r");
+inline std::string execSysCmd(const char* cmd)
+{
+    // NOTE: Append export LC_MESSAGES=C && to all commands?!
+    FILE* pipe = popen(cmd, "r");
     if (!pipe)
         return "ERROR";
     char buffer[128];
-    string result = "";
-    while(!feof(pipe)) {
-        if(fgets(buffer, 128, pipe) != NULL)
-        {
-            try
-            {
+    std::string result = "";
+    while (!feof(pipe)) {
+        if (fgets(buffer, 128, pipe) != NULL) {
+            try {
                 result += buffer;
-            }
-            catch (...)
-            {
-                return "ERROR";
+            } catch (...) {
+                result = "ERROR";
             }
         }
     }
@@ -92,4 +55,4 @@ inline string execSysCmd(const char* cmd) {
     return result;
 }
 
-#endif // GLOBALUTILS_H
+#endif  // GLOBALUTILS_H

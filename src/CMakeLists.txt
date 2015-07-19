@@ -33,6 +33,24 @@ set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost 1.42.0 COMPONENTS system filesystem thread date_time regex REQUIRED)
 
+find_path (
+    SIMPLELOGGER_HEADER
+    simplelogger.h
+    PATH_SUFFIXES simplelogger/
+)
+
+find_library (
+    SIMPLELOGGER_LIB
+    simplelogger
+)
+
+find_path(
+    SYSTEMD_INCLUDE_DIR
+    NAMES sd-daemon.h
+    PATH_SUFFIXES include/ systemd/
+)
+
+
 # configure a header file to pass some of the CMake settings
 # to the source code
 configure_file (
@@ -45,6 +63,7 @@ include_directories(
     ${CMAKE_CURRENT_BINARY_DIR} # add bin dir because of the config header file
     ${Boost_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}/thirdparty/pugixml-1.6/src
+    ${SIMPLELOGGER_HEADER}
 )
 
 set(SOURCE
@@ -52,7 +71,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/appobserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/cpuobserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/globalutils.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/logger.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/mailer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/memoryobserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/monitorworker.cpp
@@ -65,7 +83,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/appobserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/cpuobserver.h
     ${CMAKE_CURRENT_SOURCE_DIR}/globalutils.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/logger.h
     ${CMAKE_CURRENT_SOURCE_DIR}/mailer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/memoryobserver.h
     ${CMAKE_CURRENT_SOURCE_DIR}/monitorworker.h
@@ -75,7 +92,7 @@ set(HEADERS
 )
 
 add_executable(serverMonitor ${HEADERS} ${SOURCE} ${PUGIHEADERS} ${PUGISOURCE})
-target_link_libraries(serverMonitor ${Boost_LIBRARIES})
+target_link_libraries(serverMonitor ${Boost_LIBRARIES} ${SIMPLELOGGER_LIB})
 
 INSTALL(TARGETS serverMonitor
     RUNTIME DESTINATION bin

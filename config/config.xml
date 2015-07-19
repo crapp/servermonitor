@@ -22,10 +22,11 @@
     <logger>
         <!-- Where to store the logfiles, the service needs write permissions -->
         <logDir>/tmp/log/servermonitor</logDir>
-        <!-- how many logfiles to store, the oldest will be deleted -->
-        <maxLogFiles>3</maxLogFiles>
         <!-- All events with this log level and above will be logged -->
-        <minLogLevel>DEBUG</minLogLevel>
+        <minLogLevel>0</minLogLevel>
+        <logToFile>1</logToFile>
+        <logToSyslog>0</logToSyslog>
+        <logtimeformat>%F %T</logtimeformat>
     </logger>
     <observer>
         <syshealth>
@@ -35,16 +36,16 @@
             <pollTime>7</pollTime>
         </syshealth>
         <sysstat>
+            <!--  how often to poll memory usage in milliseconds -->
+            <pollTime>60000</pollTime>
+            <!-- Time to wait in seconds until we send the next mail -->
+            <secondsNextMail>3600</secondsNextMail>
             <cpu>
                 <!-- check cpu avg load, increase this values if you have more than one cpu/core -->
                 <check>true</check>            
                 <processFilesystem>/proc/loadavg</processFilesystem>
                 <avg5threshold>0.5</avg5threshold>
                 <avg15threshold>0.8</avg15threshold>
-                <!--  how often to poll the average cpu load in milliseconds -->
-                <pollTime>60000</pollTime>
-                <!-- Time to wait in seconds until we send the next mail -->
-                <secondsNextMail>3600</secondsNextMail>
             </cpu>
             <memory>
                 <!-- check memory usage -->
@@ -54,11 +55,12 @@
                 <maximumSwap>0</maximumSwap>
                 <!-- ServerMonitor stores the last values of free memory specified here and computes the average -->
                 <noValuesCompare>20</noValuesCompare>
-                <!--  how often to poll memory usage in milliseconds -->
-                <pollTime>60000</pollTime>
-                <!-- Time to wait in seconds until we send the next mail -->
-                <secondsNextMail>10800</secondsNextMail>
             </memory>
+            <filesystem>
+                <check>1</check>
+                <!-- define paths you want to check for free disk space -->
+                <path name="root" abspath="/" minfree="100" check="1"></path>
+            </filesystem>
         </sysstat>
         <applications>
             <!-- check applications in general -->

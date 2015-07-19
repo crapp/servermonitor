@@ -1,5 +1,5 @@
 //  ServerMonitor is a service to monitor a linux system
-//  Copyright (C) 2013  Christian Rapp
+//  Copyright (C) 2013 - 2015  Christian Rapp
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -14,32 +14,33 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 #ifndef MEMORYOBSERVER_H
 #define MEMORYOBSERVER_H
 
 #include <list>
+
 #include "procobserver.h"
 
 class MemoryObserver : public ProcObserver
 {
 public:
-    MemoryObserver(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Logger> log,
+    MemoryObserver(boost::shared_ptr<SMConfig> cfg,
+                   boost::shared_ptr<SimpleLogger> log,
                    boost::shared_ptr<Mailer> mail);
+    ~MemoryObserver();
+
 private:
-    //boost::shared_ptr< map<string, float> > memInfoMap;
-    map<string, float> memInfoMap;
-    //boost::shared_ptr< list<float> > lastMemFreeValues;
-    list<float> lastMemFreeValues;
+    std::map<std::string, float> memInfoMap;
+    std::list<float> lastMemFreeValues;
     int minMemFree;
     int maxSwap;
     unsigned int noValuesToCompare;
 
-    void handleStreamData(vector<string> &v);
+    void handleStreamData(std::vector<std::string> &v);
     void checkStreamData();
     void initLastDetection();
     bool checkMemory();
     bool checkSwap();
 };
 
-#endif // MEMORYOBSERVER_H
+#endif  // MEMORYOBSERVER_H
