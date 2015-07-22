@@ -14,32 +14,36 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef APPOBSERVER_H
-#define APPOBSERVER_H
+#ifndef SYSVAPP_H
+#define SYSVAPP_H
 
-#include "observer.h"
-#include "sysvapp.h"
+/**
+ * Include to check whether pid is a running process using readlink on exe
+ */
+#include <unistd.h>
+#include <cstring>
 
-class AppObserver : public Observer
+#include <map>
+#include <string>
+
+#include <boost/shared_ptr.hpp>
+#include <boost/filesystem.hpp>
+
+#include <simplelogger/simplelogger.h>
+
+class SysVApp
 {
 public:
-    AppObserver(boost::shared_ptr<SMConfig> cfg,
-                boost::shared_ptr<SimpleLogger> log,
-                boost::shared_ptr<Mailer> mail);
+    SysVApp(boost::shared_ptr<SimpleLogger> log, std::string processName,
+            pid_t pid);
+    virtual ~SysVApp();
+
+    bool isAlive() const;
 
 private:
-    bool getData();
-    void handleStreamData(std::vector<std::string> &v);
-    void checkStreamData();
-    void initLastDetection();
-    
-    void checkAppsRunning();
-    void fillProcessPidMap();
-
-    std::map<std::string, std::vector<std::string>> appsToCheck;
-
-    std::vector<SysVApp> appVector;
-    std::map<std::string, pid_t> processNamePid;
+    boost::shared_ptr<SimpleLogger> log;
+    std::string name;
+    pid_t pid;
 };
 
-#endif  // APPOBSERVER_H
+#endif  // SYSVAPP_H

@@ -31,7 +31,7 @@ endif ()
 set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON) 
 set(Boost_USE_STATIC_RUNTIME OFF)
-find_package(Boost 1.42.0 COMPONENTS system filesystem thread date_time regex REQUIRED)
+find_package(Boost 1.47.0 COMPONENTS system filesystem thread date_time regex REQUIRED)
 
 find_path (
     SIMPLELOGGER_HEADER
@@ -77,18 +77,20 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/observer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/procobserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/smconfig.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sysvapp.cpp
 )
 
 set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/appobserver.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/appobserver.h
     ${CMAKE_CURRENT_SOURCE_DIR}/cpuobserver.h
     ${CMAKE_CURRENT_SOURCE_DIR}/globalutils.h
     ${CMAKE_CURRENT_SOURCE_DIR}/mailer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/memoryobserver.h
     ${CMAKE_CURRENT_SOURCE_DIR}/monitorworker.h
     ${CMAKE_CURRENT_SOURCE_DIR}/observer.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/procobserver.cpp 
+    ${CMAKE_CURRENT_SOURCE_DIR}/procobserver.h 
     ${CMAKE_CURRENT_SOURCE_DIR}/smconfig.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/sysvapp.h
 )
 
 add_executable(serverMonitor ${HEADERS} ${SOURCE} ${PUGIHEADERS} ${PUGISOURCE})

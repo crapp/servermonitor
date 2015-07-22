@@ -42,11 +42,11 @@ AppObserver::AppObserver(boost::shared_ptr<SMConfig> cfg,
         ;
         this->nextMailAfter = 43200;  // every 12 hours
     }
-    this->appsToCheck =
-        this->cfg->getConfigMap("/config/observer/applications//app");
-    if (this->appsToCheck.empty())
-        this->watch = false;
+
     this->initLastDetection();
+
+    this->checkAppsRunning();
+
     this->log->writeLog(SimpleLogger::logLevels::DEBUG,
                         "AppObserver Object instantiated");
 }
@@ -54,99 +54,22 @@ AppObserver::AppObserver(boost::shared_ptr<SMConfig> cfg,
 bool AppObserver::getData()
 {
     this->log->writeLog(SimpleLogger::logLevels::DEBUG,
-                        "AppObserver is reading data");
-    typedef std::pair<std::string, std::vector<std::string>>
-        ApplicationAttributes;
-    BOOST_FOREACH (const ApplicationAttributes &AppAttrPair, this->appsToCheck) {
-        if (AppAttrPair.second[2] == "false")
-            continue;
+                        "AppObserver is checking processes");
 
-        this->log->writeLog(SimpleLogger::logLevels::INFO,
-                            "Checking process " + AppAttrPair.first);
-        std::string cmd = "ps -C " + AppAttrPair.first + " 2>&1";
-        std::string psOut = execSysCmd(cmd.c_str());
+    auto nonRunningApp =
+        std::find_if_not(this->appVector.begin(), this->appVector.end(),
+                         [](const SysVApp &app) { return app.isAlive(); });
+
+    if (nonRunningApp != this->appVector.end()) {
+        this->log->writeLog(
+            SimpleLogger::logLevels::DEBUG,
+            "Found non running apps. Will check all Processes now");
+        this->checkAppsRunning();
+    } else {
         this->log->writeLog(SimpleLogger::logLevels::DEBUG,
-                            "Command output: " + psOut);
-        if (psOut.compare("ERROR") ==
-            0)  // TODO: Should we really quit the loop?
-        {
-            this->mail->sendmail(
-                this->threadID, false, "Command execution failed",
-                "Could not execute command" + cmd + "\n\n" + psOut +
-                    "\n\n Will stop AppObserver Thread");
-            this->log->writeLog(SimpleLogger::logLevels::ERROR,
-                                "Restart command failed: " + psOut);
-            return false;
-        }
-        std::vector<std::string> lines;
-        boost::algorithm::split_regex(lines, psOut, boost::regex("\\n+"));
-        bool running = false;
-        BOOST_FOREACH (const std::string &line, lines) {
-            boost::regex pattern(
-                "^\\s*[0-9]+\\s+([a-z]+/"
-                "[0-9]|\\?)\\s+[0-9]{2}:[0-9]{2}:[0-9]{2}\\s+\\w+$");
-            if (boost::regex_match(line, pattern)) {
-                // everything is all right, process is running
-                this->log->writeLog(
-                    SimpleLogger::logLevels::INFO,
-                    "Process " + AppAttrPair.first + " is running");
-                running = true;
-                break;
-            }
-        }
-        if (!running) {
-            this->log->writeLog(SimpleLogger::logLevels::WARNING,
-                                AppAttrPair.first + " is not running.");
-            if (!this->checkTimeoutMail(
-                    this->mapLastDetection[AppAttrPair.first])) {
-                this->log->writeLog(
-                    SimpleLogger::logLevels::WARNING,
-                    "Won't notify user via E-Mail because timeout not reached");
-                continue;
-            }
-            if (AppAttrPair.second[1] == "false") {
-                this->mail->sendmail(
-                    this->threadID, false, "Application not running",
-                    "Application " + AppAttrPair.first + " is not running. " +
-                        "Restart is disabled!");
-                this->log->writeLog(
-                    SimpleLogger::logLevels::WARNING,
-                    AppAttrPair.first + " Automatic restart is disabled.");
-            } else {
-                this->log->writeLog(
-                    SimpleLogger::logLevels::WARNING,
-                    "Trying to restart process " + AppAttrPair.first);
-                cmd = AppAttrPair.second[3] + " 2>&1";
-                psOut = execSysCmd(cmd.c_str());
-                if (psOut.compare("ERROR") ==
-                    0)  // TODO: Should we really quit the loop?
-                {
-                    this->mail->sendmail(
-                        this->threadID, false, "Command execution failed",
-                        "Could not execute command" + cmd + "\n\n" + psOut +
-                            "\n\n Will stop AppObserver Thread");
-                    this->log->writeLog(SimpleLogger::logLevels::ERROR,
-
-                                        "Restart command failed: " + psOut);
-                    return false;
-                }
-                this->log->writeLog(SimpleLogger::logLevels::INFO,
-
-                                    "Application " + AppAttrPair.first +
-                                        " was not running. Tried to restart the "
-                                        "application:\n " +
-                                        psOut);
-                this->mail->sendmail(this->threadID, false,
-                                     "Restarted an application",
-                                     "Application " + AppAttrPair.first +
-                                         " was not running. Tried to restart "
-                                         "the application:\n " +
-                                         psOut);
-            }
-            this->mapLastDetection[AppAttrPair.first] =
-                boost::posix_time::second_clock::universal_time();
-        }
+                            "All Applications are running");
     }
+
     return true;
 }
 
@@ -168,5 +91,103 @@ void AppObserver::initLastDetection()
         this->mapLastDetection.insert(
             std::pair<std::string, boost::posix_time::ptime>(AppAttrPair.first,
                                                              pt));
+    }
+}
+
+void AppObserver::checkAppsRunning()
+{
+    this->appsToCheck =
+        this->cfg->getConfigMap("/config/observer/applications//app");
+    if (this->appsToCheck.empty())
+        this->watch = false;
+
+    this->processNamePid.clear();
+    this->fillProcessPidMap();
+
+    bool appsNotRunningSendMail = false;
+    std::string nonRunning = "";
+    // cycle through all apps that we should check
+    for (const std::pair<std::string, std::vector<std::string>> &mapEntry :
+         this->appsToCheck) {
+        try {
+            // do we need to check this one?
+            if (std::stoi(mapEntry.second.at(1))) {
+                // search map of running processes
+                std::map<std::string, pid_t>::iterator iter;
+                iter = this->processNamePid.find(mapEntry.first);
+                if (iter != this->processNamePid.end()) {
+                    // app is running, generate object and push_back
+                    this->appVector.push_back(
+                        SysVApp(this->log, iter->first, iter->second));
+                    this->log->writeLog(SimpleLogger::logLevels::DEBUG,
+                                        iter->first + " is running");
+                } else {
+                    this->log->writeLog(
+                        SimpleLogger::logLevels::WARNING,
+                        "Application " + mapEntry.first + " is not running");
+                    // Process not running, check if we need to send an E-Mail
+                    if (this->checkTimeoutMail(
+                            this->mapLastDetection.at(mapEntry.first))) {
+                        this->log->writeLog(SimpleLogger::logLevels::DEBUG,
+                                            "Will notify user");
+                        appsNotRunningSendMail = true;
+                    }
+                    nonRunning += " " + iter->first;
+                    this->mapLastDetection[mapEntry.first] =
+                        boost::posix_time::second_clock::universal_time();
+                }
+            } else {
+                this->log->writeLog(
+                    SimpleLogger::logLevels::DEBUG,
+                    "Checking of " + mapEntry.first + " is deactivated");
+            }
+        } catch (const std::exception &ex) {
+            this->log->writeLog(SimpleLogger::logLevels::ERROR,
+                                "Can not check if application " +
+                                    mapEntry.first + " is running.\n" +
+                                    ex.what());
+        }
+    }
+}
+
+void AppObserver::fillProcessPidMap()
+{
+    namespace fs = boost::filesystem;
+    boost::regex onlyNumericDir("^[0-9]+$");
+    char readlinkBuf[1024];
+    try {
+        // go through all entries in /proc
+        for (fs::directory_iterator dir_itr("/proc");
+             dir_itr != fs::directory_iterator(); ++dir_itr) {
+            // check 1. if it is a directory and 2. if the directory name
+            // consists only off numeric chars.
+            if (fs::is_directory(dir_itr->status()) &&
+                boost::regex_match(dir_itr->path().stem().string(),
+                                   onlyNumericDir)) {
+                memset(readlinkBuf, 0, sizeof(readlinkBuf));
+                std::string p = dir_itr->path().string() + "/exe";
+                if (readlink(p.c_str(), readlinkBuf, sizeof(readlinkBuf) - 1) !=
+                    -1) {
+                    this->processNamePid.insert(
+                        {fs::path(readlinkBuf).stem().string(),
+                         std::stoi(dir_itr->path().stem().string())});
+                } else {
+                    this->log->writeLog(SimpleLogger::logLevels::ERROR,
+                                        "Can not read exe link in /proc/" + p +
+                                            "\n" + strerror(errno));
+                    // TODO: Should we exit the loop here and clear the map?
+                }
+            }
+        }
+        this->log->writeLog(SimpleLogger::logLevels::DEBUG,
+                            "Detected " +
+                                std::to_string(this->processNamePid.size()) +
+                                " running processes");
+    } catch (const std::exception &ex) {
+        this->log->writeLog(SimpleLogger::logLevels::ERROR,
+                            "Could not collect running processes from /proc \n" +
+                                std::string(ex.what()));
+        // make sure the map is empty
+        this->processNamePid.clear();
     }
 }

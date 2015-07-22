@@ -9,14 +9,12 @@
         <mailCommand>/usr/sbin/sendmail -t</mailCommand>
         <mailTo>someone@localhost</mailTo>
         <mailFrom>servermonitor@localhost</mailFrom>
-        <!-- Time to wait in seconds until we send the next mail -->
-        <secondsNextMail>43200</secondsNextMail>
         <dataCollectors>
             <!-- Here you can define as much collectors as you want, the informations will be appended to the e-mail -->
-            <collector name="free -m" cmd="free -m"></collector>
-            <collector name="psCpu" cmd="ps -eo pcpu,pid,user,args | sort -r -k1"></collector>
-            <collector name="psMem" cmd="ps -eo pmem,rss,vsize,pid,user,args | sort -r -k1"></collector>
-            <collector name="df -m" cmd="df -m"></collector>
+            <collector name="free -m" cmd="free -m" />
+            <collector name="psCpu" cmd="ps -eo pcpu,pid,user,args | sort -r -k1" />
+            <collector name="psMem" cmd="ps -eo pmem,rss,vsize,pid,user,args | sort -r -k1" />
+            <collector name="df -m" cmd="df -m" />
         </dataCollectors>
     </email>
     <logger>
@@ -65,18 +63,23 @@
         <applications>
             <!-- check applications in general -->
             <check>true</check>
-            <!-- how often to poll if the application is alive -->
+            <!-- how often to poll if the application/service/daemon is alive -->
             <pollTime>10000</pollTime>
             <!-- Time to wait in seconds until we send the next mail -->
-            <secondsNextMail>10800</secondsNextMail>
+            <secondsNextMail>3600</secondsNextMail>
             <!-- you can define as many applications as you want. don't change the order of the attributes -->
             <!-- name -> name of the process, restart -> restart the application, check -> check if the application is running,
             restartcmd -> the command to restart the application -->
-            <app name="postfix" restart="true" check="true" restartcmd="/etc/init.d/postfix start" /> 
-            <app name="ntpd" restart="false" check="true" restartcmd="/etc/init.d/ntpd start" />  
-            <app name="apache2" restart="true" check="true" restartcmd="/etc/init.d/apache2 start" />
-            <app name="mysqld" restart="true" check="false" restartcmd="/etc/init.d/mysqld start" />
-            <app name="sshd" restart="true" check="false" restartcmd="/etc/init.d/ssh start" />        
+            <sysv>
+                <app name="postfix" restart="true" check="1" restartcmd="/etc/init.d/postfix start" /> 
+                <app name="ntpd" restart="false" check="1" restartcmd="/etc/init.d/ntpd start" />  
+                <app name="apache2" restart="true" check="1" restartcmd="/etc/init.d/apache2 start" />
+                <app name="mysqld" restart="true" check="1" restartcmd="/etc/init.d/mysqld start" />
+                <app name="sshd" restart="true" check="1" restartcmd="/etc/init.d/ssh start" />
+            </sysv>
+            <systemd>
+                <service name="sshd.service" check="1" />
+            </systemd>
         </applications>
     </observer>
 </config>
