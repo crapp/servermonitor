@@ -7,5 +7,7 @@
 #define VERSION_PATCH "@servermonitor_VERSION_PATCH@"
 
 #define CONFIGPATH "@CONFIGDIR@"
+#define CONFIGVERSION_MAJOR "@servermonitor_CONFIGVERSION_MAJOR@"
+#define CONFIGVERSION_MINOR "@servermonitor_CONFIGVERSION_MINOR@"
 
 #endif  // CONFIG_H"

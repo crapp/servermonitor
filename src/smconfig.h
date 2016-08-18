@@ -22,8 +22,27 @@
 #include <vector>
 #include <map>
 
+#include <libconfig.h++>
+
 #include "globalutils.h"
 #include "pugixml.hpp"  //xml Parser
+
+namespace SMConfig_constants
+{
+const char* const NODE_CONFIG = "config";
+
+const char* const NODE_COMMON = "common";
+
+const char* const NODE_EMAIL = "email";
+
+const char* const NODE_LOGGER = "logger";
+const char* const LOGDIR = "logDir";
+const char* const MINLOGLEVEL = "minLogLevel";
+const char* const LOGTOSYSLOG = "logToSyslog";
+const char* const LOGTIMEFORMAT = "logtimeformat";
+
+const char* const NODE_OBSERVER = "observer";
+}
 
 /**
  * @brief The SMConfig class provides access to the xml based configuration via
@@ -34,10 +53,10 @@
 class SMConfig
 {
 public:
-    SMConfig(const std::string &configPath);
-    std::string getConfigValue(const std::string &xpath);
+    SMConfig(const std::string& configPath);
+    std::string getConfigValue(const std::string& xpath);
     std::map<std::string, std::vector<std::string>> getConfigMap(
-        const std::string &xpath);
+        const std::string& xpath);
 
     bool getConfigFileOK();
 

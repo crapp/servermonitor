@@ -24,6 +24,7 @@
 
 #define DEVELOPMENT
 
+// Counts the number of active Threads. Only for debugging purposes. 
 extern int noOfActiveThreads;
 
 /**

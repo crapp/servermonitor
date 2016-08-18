@@ -2,7 +2,10 @@
 #The version number of servermonitor
 set (servermonitor_VERSION_MAJOR 2)
 set (servermonitor_VERSION_MINOR 0)
-set (servermonitor_VERSION_MINOR 0)
+set (servermonitor_VERSION_PATCH 0)
+
+set (servermonitor_CONFIGVERSION_MAJOR 1)
+set (servermonitor_CONFIGVERSION_MINOR 0)
 
 set (CONFIGDIR "/etc" CACHE PATH "Define the directory where the config file is located")
 
@@ -43,6 +46,28 @@ find_library (
     SIMPLELOGGER_LIB
     simplelogger
 )
+
+if (SIMPLELOGGER_HEADER AND SIMPLELOGGER_LIB)
+    message(STATUS "Found simplelogger ${SIMPLELOGGER_LIB}")
+else()
+    message(FATAL "Could not find library simplelogger")
+endif()
+
+find_path (
+    LIBCONFIG_HEADER
+    libconfig.h++
+)
+
+find_library (
+    LIBCONFIG_LIB
+    libconfig++
+)
+
+if(LIBCONFIG_HEADER AND LIBCONFIG_LIB) 
+    message(STATUS "Found libconfig++ ${LIBCONFIG_LIB}")
+else()
+    message(FATAL "Could not find libconfig++ library")
+endif()
 
 find_path(
     SYSTEMD_INCLUDE_DIR
@@ -94,7 +119,7 @@ set(HEADERS
 )
 
 add_executable(serverMonitor ${HEADERS} ${SOURCE} ${PUGIHEADERS} ${PUGISOURCE})
-target_link_libraries(serverMonitor ${Boost_LIBRARIES} ${SIMPLELOGGER_LIB})
+target_link_libraries(serverMonitor ${Boost_LIBRARIES} ${SIMPLELOGGER_LIB} ${LIBCONFIG_LIB})
 
 INSTALL(TARGETS serverMonitor
     RUNTIME DESTINATION bin

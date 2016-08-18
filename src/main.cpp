@@ -24,6 +24,8 @@
 
 #include <simplelogger/simplelogger.h>
 
+#include <libconfig.h++>
+
 #include "smconfig.h"
 #include "mailer.h"
 #include "monitorworker.h"
@@ -32,20 +34,34 @@
 
 int main(int argc, char *argv[])
 {
-    boost::shared_ptr<SMConfig> cfg = boost::make_shared<SMConfig>(CONFIGPATH);
+    boost::shared_ptr<libconfig::Config> cfg =
+        boost::make_shared<libconfig::Config>();
 
-    if (!cfg->getConfigFileOK()) {
+    try {
+        std::stringstream configfile;
+        configfile << CONFIGPATH << "/serverMonitor.cfg";
+        cfg->readFile(configfile.str().c_str());
+
+    } catch (const libconfig::FileIOException &ex) {
         std::cerr << "ServerMontior could not open the config file." << std::endl
-                  << "Should be here /etc/serverMonitor/config.xml" << std::endl
-                  << "Also check if the xml is well formed." << std::endl;
+                  << "Tried to open " << CONFIGPATH << "/serverMonitor.cfg"
+                  << std::endl
+                  << ex.what() << std::endl;
+        return 1;
+    } catch (const libconfig::ParseException &ex) {
+        std::cerr << "Could not parse config file" << std::endl
+                  << ex.what() << std::endl;
         return 1;
     }
 
-    boost::shared_ptr<SimpleLogger> log = nullptr;
-
+    // TODO: Check config version!
+    
     try {
+        
         std::string logfile =
-            cfg->getConfigValue("/config/logger/logDir") + "servermonitor.log";
+            cfg->getConfigValue(std::string(smc::NODE_CONFIG) + "/" +
+                                smc::NODE_LOGGER + "/" + smc::LOGDIR) +
+            "servermonitor.log";
         SimpleLogger::logLevels loglevel = static_cast<SimpleLogger::logLevels>(
             std::stoi(cfg->getConfigValue("/config/logger/minLogLevel")));
         bool logToFile =
