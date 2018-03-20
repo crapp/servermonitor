@@ -28,6 +28,7 @@
 #include "mailer.h"
 #include "monitorworker.h"
 #include "globalutils.h"
+#include "log_instance.h"
 #include "config.h"
 
 int main(int argc, char *argv[])
@@ -41,22 +42,23 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    boost::shared_ptr<SimpleLogger> log = nullptr;
+    ealogger::Logger &log = LogInstance::get_instance();
 
     try {
         std::string logfile =
             cfg->getConfigValue("/config/logger/logDir") + "servermonitor.log";
-        SimpleLogger::logLevels loglevel = static_cast<SimpleLogger::logLevels>(
-            std::stoi(cfg->getConfigValue("/config/logger/minLogLevel")));
+
         bool logToFile =
             std::stoi(cfg->getConfigValue("/config/logger/logToFile"));
+        if (logToFile)
+            log.init_file_sink();
         bool logToSyslog =
             std::stoi(cfg->getConfigValue("/config/logger/logToSyslog"));
+        if (logToSyslog)
+            log.init_syslog_sink();
         std::string logTimeFormat =
             cfg->getConfigValue("/config/logger/logTimeFormat");
-        log = boost::make_shared<SimpleLogger>(loglevel, false, logToFile,
-                                               logToSyslog, true, false,
-                                               logTimeFormat, logfile);
+
     } catch (const std::exception &ex) {
         std::cerr << "Could not initialize logger for ServerMonitor"
                   << std::endl;
@@ -67,16 +69,17 @@ int main(int argc, char *argv[])
     boost::shared_ptr<Mailer> mail = boost::make_shared<Mailer>(cfg, log);
 
     std::stringstream version;
-    version << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH;
-    log->writeLog(SimpleLogger::logLevels::INFO,
-                  "Starting ServerMonitor " + version.str());
+    version << VERSION_MAJOR << "." << VERSION_MINOR;
+    if (VERSION_PATCH != 0) {
+        version << "." << VERSION_PATCH;
+    }
+    log.eal_info("Starting ServerMonitor " + version.str());
 
     boost::shared_ptr<MonitorWorker> mw =
         boost::make_shared<MonitorWorker>(cfg, log, mail);
     mw->startMonitoring();
 
-    log->writeLog(SimpleLogger::logLevels::INFO, "ServerMonitor has stopped");
-    log->writeLog(SimpleLogger::logLevels::DEBUG,
-                  "NoOfActiveThreads: " + std::to_string(noOfActiveThreads));
+    log.eal_info("ServerMonitor has stopped");
+    log.eal_debug("NoOfActiveThreads: " + std::to_string(noOfActiveThreads));
     return 0;
 }
