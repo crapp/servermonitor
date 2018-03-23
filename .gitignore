@@ -109,6 +109,10 @@ Session.vim
 
 ### Custom ###
 
+*.tar.gz
+compile_commands.json
+.ignore
 .lvimrc
+.clang-format
 .ycm_extra_conf.py
 
