@@ -29,7 +29,7 @@ set(HEADERS
 set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
-find_package(Boost 1.47.0
+find_package(Boost 1.55.0
     COMPONENTS system filesystem thread date_time regex REQUIRED)
 
 find_package(Threads REQUIRED)
