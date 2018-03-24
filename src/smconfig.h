@@ -1,5 +1,5 @@
 //  ServerMonitor is a service to monitor a linux system
-//  Copyright (C) 2013 - 2016  Christian Rapp
+//  Copyright (C) 2013 - 2018 Christian Rapp
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -18,9 +18,9 @@
 #define SMCONFIG_H
 
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 #include "globalutils.h"
 #include "pugixml.hpp"  //xml Parser
@@ -31,9 +31,8 @@
  *
  * @author Christian Rapp crapp
  */
-class SMConfig
-{
-public:
+class SMConfig {
+   public:
     SMConfig(const std::string &configPath);
     std::string getConfigValue(const std::string &xpath);
     std::map<std::string, std::vector<std::string>> getConfigMap(
@@ -41,7 +40,7 @@ public:
 
     bool getConfigFileOK();
 
-private:
+   private:
     std::string configFile;
     pugi::xml_document cfgdoc;
     bool configFileOK;

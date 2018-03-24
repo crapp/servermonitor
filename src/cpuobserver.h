@@ -1,5 +1,5 @@
 //  ServerMonitor is a service to monitor a linux system
-//  Copyright (C) 2013 - 2016  Christian Rapp
+//  Copyright (C) 2013 - 2018 Christian Rapp
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -19,16 +19,14 @@
 
 #include "procobserver.h"
 
-class CPUObserver : public ProcObserver
-{
-public:
+class CPUObserver : public ProcObserver {
+   public:
     CPUObserver(boost::shared_ptr<SMConfig> cfg,
-                boost::shared_ptr<SimpleLogger> log,
                 boost::shared_ptr<Mailer> mail);
 
-    ~CPUObserver();
+    ~CPUObserver() = default;
 
-private:
+   private:
     std::vector<std::string> cpuLoad;
     float cpuAvgLoad5;
     float cpuAvgLoad15;

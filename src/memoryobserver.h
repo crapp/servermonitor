@@ -1,5 +1,5 @@
 //  ServerMonitor is a service to monitor a linux system
-//  Copyright (C) 2013 - 2016  Christian Rapp
+//  Copyright (C) 2013 - 2018 Christian Rapp
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -21,15 +21,13 @@
 
 #include "procobserver.h"
 
-class MemoryObserver : public ProcObserver
-{
-public:
+class MemoryObserver : public ProcObserver {
+   public:
     MemoryObserver(boost::shared_ptr<SMConfig> cfg,
-                   boost::shared_ptr<SimpleLogger> log,
                    boost::shared_ptr<Mailer> mail);
-    ~MemoryObserver();
+    ~MemoryObserver() = default;
 
-private:
+   private:
     std::map<std::string, float> memInfoMap;
     std::list<float> lastMemFreeValues;
     int minMemFree;

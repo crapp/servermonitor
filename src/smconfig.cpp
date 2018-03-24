@@ -1,5 +1,5 @@
 //  ServerMonitor is a service to monitor a linux system
-//  Copyright (C) 2013 - 2016  Christian Rapp
+//  Copyright (C) 2013 - 2018 Christian Rapp
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -16,8 +16,7 @@
 
 #include "smconfig.h"
 
-SMConfig::SMConfig(const std::string &configPath)
-{
+SMConfig::SMConfig(const std::string &configPath) {
 #ifdef DEVELOPMENT
     this->configFile = "../../config/config.xml";
 #else
@@ -31,8 +30,7 @@ SMConfig::SMConfig(const std::string &configPath)
     }
 }
 
-std::string SMConfig::getConfigValue(const std::string &xpath)
-{
+std::string SMConfig::getConfigValue(const std::string &xpath) {
     try {
         pugi::xpath_node node = this->cfgdoc.select_single_node(xpath.c_str());
         if (node != 0) {
@@ -47,8 +45,7 @@ std::string SMConfig::getConfigValue(const std::string &xpath)
 }
 
 std::map<std::string, std::vector<std::string>> SMConfig::getConfigMap(
-    const std::string &xpath)
-{
+    const std::string &xpath) {
     std::map<std::string, std::vector<std::string>> appMap;
     try {
         pugi::xpath_node_set nodes = this->cfgdoc.select_nodes(xpath.c_str());

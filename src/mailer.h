@@ -1,5 +1,5 @@
 //  ServerMonitor is a service to monitor a linux system
-//  Copyright (C) 2013 - 2016  Christian Rapp
+//  Copyright (C) 2013 - 2018 Christian Rapp
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -17,34 +17,33 @@
 #ifndef MAILER_H
 #define MAILER_H
 
+#include <unistd.h>
 #include <cstdio>  //needed for popen and FILE handle
 #include <sstream>
 #include <string>
-#include <unistd.h>
 
 #include <boost/foreach.hpp>
-#include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
-#include <boost/thread/mutex.hpp>
+#include <boost/shared_ptr.hpp>
 #include <boost/thread/lock_guard.hpp>
+#include <boost/thread/mutex.hpp>
 
-#include <simplelogger/simplelogger.h>
+#include "spdlog/spdlog.h"
 
 #include "smconfig.h"
 
-class Mailer
-{
-public:
-    Mailer(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<SimpleLogger> log);
-    void sendmail(const int &threadID, bool data, std::string subject,
+class Mailer {
+   public:
+    Mailer(boost::shared_ptr<SMConfig> cfg);
+    void sendmail(int threadID, bool data, std::string subject,
                   std::string message);
 
-private:
+   private:
     boost::shared_ptr<SMConfig> cfg;
-    boost::shared_ptr<SimpleLogger> log;
+    std::shared_ptr<spdlog::logger> log;
     boost::mutex mtx;
 
-    void collectData(std::string &msg, const int &threadID);
+    void collectData(std::string &msg, int threadID);
     std::string machineName();
 };
 

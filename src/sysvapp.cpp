@@ -1,5 +1,5 @@
 //  ServerMonitor is a service to monitor a linux system
-//  Copyright (C) 2013 - 2016  Christian Rapp
+//  Copyright (C) 2013 - 2018 Christian Rapp
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -15,17 +15,14 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "sysvapp.h"
+#include "constants.h"
 
-SysVApp::SysVApp(boost::shared_ptr<SimpleLogger> log, std::string processName,
-                 pid_t pid)
-    : log(log), name(processName), pid(pid)
-{
-}
+SysVApp::SysVApp(std::string processName, pid_t pid)
+    : name(processName), pid(pid) {}
 
-SysVApp::~SysVApp() {}
+SysVApp::~SysVApp() { this->log = spdlog::get(sm_constants::LOGGER); }
 
-bool SysVApp::isAlive() const
-{
+bool SysVApp::isAlive() const {
     namespace fs = boost::filesystem;
     if (fs::is_directory("/proc/" + std::to_string(this->pid))) {
         char readlinkBuf[1024];
@@ -35,10 +32,8 @@ bool SysVApp::isAlive() const
                 return true;
             }
         } else {
-            this->log->writeLog(SimpleLogger::logLevels::ERROR,
-                                "Can not read exe link in /proc/" +
-                                    std::to_string(pid) + "\n" +
-                                    strerror(errno));
+            this->log->error("Can not read exe link in /proc/" +
+                             std::to_string(pid) + "\n" + strerror(errno));
         }
     }
     return false;

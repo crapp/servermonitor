@@ -1,5 +1,5 @@
 //  ServerMonitor is a service to monitor a linux system
-//  Copyright (C) 2013 - 2016  Christian Rapp
+//  Copyright (C) 2013 - 2018 Christian Rapp
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -17,9 +17,8 @@
 #include "memoryobserver.h"
 
 MemoryObserver::MemoryObserver(boost::shared_ptr<SMConfig> cfg,
-                               boost::shared_ptr<SimpleLogger> log,
                                boost::shared_ptr<Mailer> mail)
-    : ProcObserver(cfg, log, mail)
+    : ProcObserver(cfg, mail)
 
 {
     this->watch = true;
@@ -30,19 +29,17 @@ MemoryObserver::MemoryObserver(boost::shared_ptr<SMConfig> cfg,
         this->msToWait = std::stoi(this->cfg->getConfigValue(
             "/config/observer/sysstat/memory/pollTime"));
     } catch (const std::exception &ex) {
-        this->log->writeLog(
-            SimpleLogger::logLevels::ERROR,
+        this->log->error(
             std::string("Can not parse \"observer/sysstat/memory/pollTime\" ") +
-                ex.what());
+            ex.what());
         this->msToWait = 1000;
     }
     try {
         this->nextMailAfter = std::stoi(this->cfg->getConfigValue(
             "/config/observer/sysstat/memory/secondsNextMail"));
     } catch (const std::exception &ex) {
-        this->log->writeLog(
-            SimpleLogger::logLevels::ERROR,
-            "Can not parse \"email/secondsNextMail\" " + std::string(ex.what()));
+        this->log->error("Can not parse \"email/secondsNextMail\" " +
+                         std::string(ex.what()));
         ;
         this->nextMailAfter = 43200;  // every 12 hours
     }
@@ -50,10 +47,9 @@ MemoryObserver::MemoryObserver(boost::shared_ptr<SMConfig> cfg,
         this->minMemFree = std::stoi(this->cfg->getConfigValue(
             "/config/observer/sysstat/memory/minimumFree"));
     } catch (const std::exception &ex) {
-        this->log->writeLog(
-            SimpleLogger::logLevels::ERROR,
+        this->log->error(
             "Can not parse \"observer/sysstat/memory/minimumFree\" " +
-                std::string(ex.what()));
+            std::string(ex.what()));
         ;
         this->minMemFree = 10000;  // 100MB
     }
@@ -61,10 +57,9 @@ MemoryObserver::MemoryObserver(boost::shared_ptr<SMConfig> cfg,
         this->maxSwap = std::stoi(this->cfg->getConfigValue(
             "/config/observer/sysstat/memory/maximumSwap"));
     } catch (const std::exception &ex) {
-        this->log->writeLog(
-            SimpleLogger::logLevels::ERROR,
+        this->log->error(
             "Can not parse \"observer/sysstat/memory/maximumSwap\" " +
-                std::string(ex.what()));
+            std::string(ex.what()));
         ;
         this->maxSwap = 0;
     }
@@ -72,22 +67,17 @@ MemoryObserver::MemoryObserver(boost::shared_ptr<SMConfig> cfg,
         this->noValuesToCompare = std::stoi(this->cfg->getConfigValue(
             "/config/observer/sysstat/memory/noValuesCompare"));
     } catch (const std::exception &ex) {
-        this->log->writeLog(
-            SimpleLogger::logLevels::ERROR,
+        this->log->error(
             "Can not parse \"observer/sysstat/memory/noValuesCompare\" " +
-                std::string(ex.what()));
+            std::string(ex.what()));
         ;
         this->noValuesToCompare = 10;
     }
     this->initLastDetection();
-    this->log->writeLog(SimpleLogger::logLevels::DEBUG,
-                        "MemoryObserver Object instantiated");
+    this->log->debug("MemoryObserver Object instantiated");
 }
 
-MemoryObserver::~MemoryObserver(){};
-
-void MemoryObserver::handleStreamData(std::vector<std::string> &v)
-{
+void MemoryObserver::handleStreamData(std::vector<std::string> &v) {
     if (v.size() >= 2) {
         try {
             // erase last colon from key
@@ -99,42 +89,37 @@ void MemoryObserver::handleStreamData(std::vector<std::string> &v)
                 this->mail->sendmail(this->threadID, false,
                                      "Error, could not cast value",
                                      "Could not cast " + v[1] + " to float");
-                this->log->writeLog(SimpleLogger::logLevels::ERROR,
+                this->log->error(
 
-                                    "Can not cast " + v[1] + " to float. " +
-                                        std::string(ex.what()));
+                    "Can not cast " + v[1] + " to float. " +
+                    std::string(ex.what()));
             }
         } catch (const std::exception &ex) {
             std::string s(ex.what());
-            this->log->writeLog(SimpleLogger::logLevels::ERROR,
-                                "Exception: " + s);
+            this->log->error("Exception: " + s);
         } catch (...) {
-            this->log->writeLog(SimpleLogger::logLevels::ERROR,
-                                "MemoryWatch handleStreamData failed with "
-                                "unknown exception.");
+            this->log->error(
+                "MemoryWatch handleStreamData failed with "
+                "unknown exception.");
         }
     } else {
-        this->log->writeLog(SimpleLogger::logLevels::ERROR,
-                            "Vector wrong size, expected size two, got " +
-                                std::to_string(v.size()));
+        this->log->error("Vector wrong size, expected size two, got " +
+                         std::to_string(v.size()));
     }
 }
 
-void MemoryObserver::checkStreamData()
-{
-    this->log->writeLog(SimpleLogger::logLevels::DEBUG,
-                        "Checking Memory stream data");
-    if (this->memInfoMap.size() == 0)
-        return;
+void MemoryObserver::checkStreamData() {
+    this->log->debug("Checking Memory stream data");
+    if (this->memInfoMap.size() == 0) return;
     // check if all keys are in the map
     if (this->memInfoMap.find("MemTotal") != this->memInfoMap.end() &&
         this->memInfoMap.find("MemFree") != this->memInfoMap.end() &&
         this->memInfoMap.find("SwapTotal") != this->memInfoMap.end() &&
         this->memInfoMap.find("SwapFree") != this->memInfoMap.end()) {
         if (this->lastMemFreeValues.size() < this->noValuesToCompare) {
-            this->log->writeLog(SimpleLogger::logLevels::DEBUG,
-                                "Size of mem value list smaller than values to "
-                                "check, just push_back and continue");
+            this->log->debug(
+                "Size of mem value list smaller than values to "
+                "check, just push_back and continue");
             this->lastMemFreeValues.push_back(this->memInfoMap["MemFree"]);
         } else {
             this->lastMemFreeValues.erase(this->lastMemFreeValues.begin());
@@ -146,14 +131,12 @@ void MemoryObserver::checkStreamData()
         if (this->checkTimeoutMail(this->mapLastDetection["Swap"]))
             this->checkSwap();
     } else {
-        this->log->writeLog(SimpleLogger::logLevels::ERROR,
-                            "Missing keys in meminfomap :/");
+        this->log->error("Missing keys in meminfomap :/");
     }
     this->memInfoMap.clear();
 }
 
-void MemoryObserver::initLastDetection()
-{
+void MemoryObserver::initLastDetection() {
     // create a ptime object that is older as this->nextMailAfter + 60
     boost::posix_time::ptime pt =
         boost::posix_time::second_clock::universal_time() -
@@ -165,57 +148,50 @@ void MemoryObserver::initLastDetection()
         std::pair<std::string, boost::posix_time::ptime>("Swap", pt));
 }
 
-bool MemoryObserver::checkMemory()
-{
-    /*NOTE: we could hold a sum as a class member and update it everytime the vector gets updated.
-     *      No more need for foreach here. But ok the list is usually small...
+bool MemoryObserver::checkMemory() {
+    /*NOTE: we could hold a sum as a class member and update it everytime the
+     * vector gets updated. No more need for foreach here. But ok the list is
+     * usually small...
      */
     float sum = 0;
-    BOOST_FOREACH (const float &f, this->lastMemFreeValues) {
-        sum += f;
-    }
+    BOOST_FOREACH (const float &f, this->lastMemFreeValues) { sum += f; }
     int avrgMemory =
         this->memInfoMap["MemTotal"] - (sum / this->lastMemFreeValues.size());
-    this->log->writeLog(SimpleLogger::logLevels::INFO,
-                        "Average memory usage: " + std::to_string(avrgMemory));
+    this->log->info("Average memory usage: " + std::to_string(avrgMemory));
     if (avrgMemory < this->minMemFree) {
         this->mapLastDetection["Memory"] =
             boost::posix_time::second_clock::universal_time();
-        this->mail->sendmail(
-            this->threadID, true, "Average Memory usage exceeded threshold",
-            "The average Memory usage is to high " + std::to_string(avrgMemory));
-        this->log->writeLog(SimpleLogger::logLevels::WARNING,
-                            "Average Memory usage exceeded threshold " +
-                                std::to_string(avrgMemory));
+        this->mail->sendmail(this->threadID, true,
+                             "Average Memory usage exceeded threshold",
+                             "The average Memory usage is to high " +
+                                 std::to_string(avrgMemory));
+        this->log->warn("Average Memory usage exceeded threshold " +
+                        std::to_string(avrgMemory));
         return true;
     }
-    this->log->writeLog(SimpleLogger::logLevels::INFO,
-                        "Memory usage does not exceed threshold");
+    this->log->info("Memory usage does not exceed threshold");
     return false;
 }
 
-bool MemoryObserver::checkSwap()
-{
-    int swapUsage = this->memInfoMap["SwapTotal"] - this->memInfoMap["SwapFree"];
-    this->log->writeLog(SimpleLogger::logLevels::INFO,
-                        "Swap usage: " + std::to_string(swapUsage));
+bool MemoryObserver::checkSwap() {
+    int swapUsage =
+        this->memInfoMap["SwapTotal"] - this->memInfoMap["SwapFree"];
+    this->log->info("Swap usage: " + std::to_string(swapUsage));
     if (swapUsage > this->maxSwap) {
         this->mapLastDetection["Swap"] =
             boost::posix_time::second_clock::universal_time();
-        this->mail->sendmail(this->threadID, true,
-                             "System swap usage exceeded threshold",
-                             "System swap usage exceeded threshold: " +
-                                 std::to_string((this->memInfoMap["SwapTotal"] -
-                                                 this->memInfoMap["SwapFree"])) +
-                                 " > " + std::to_string(this->maxSwap));
-        this->log->writeLog(SimpleLogger::logLevels::WARNING,
-                            "System swap usage exceeded threshold: " +
-                                std::to_string((this->memInfoMap["SwapTotal"] -
-                                                this->memInfoMap["SwapFree"])) +
-                                " > " + std::to_string(this->maxSwap));
+        this->mail->sendmail(
+            this->threadID, true, "System swap usage exceeded threshold",
+            "System swap usage exceeded threshold: " +
+                std::to_string((this->memInfoMap["SwapTotal"] -
+                                this->memInfoMap["SwapFree"])) +
+                " > " + std::to_string(this->maxSwap));
+        this->log->warn("System swap usage exceeded threshold: " +
+                        std::to_string((this->memInfoMap["SwapTotal"] -
+                                        this->memInfoMap["SwapFree"])) +
+                        " > " + std::to_string(this->maxSwap));
         return true;
     }
-    this->log->writeLog(SimpleLogger::logLevels::INFO,
-                        "Swap usage does not exceed threshold");
+    this->log->info("Swap usage does not exceed threshold");
     return false;
 }

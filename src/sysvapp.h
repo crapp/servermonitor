@@ -1,5 +1,5 @@
 //  ServerMonitor is a service to monitor a linux system
-//  Copyright (C) 2013 - 2016  Christian Rapp
+//  Copyright (C) 2013 - 2018 Christian Rapp
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -26,22 +26,20 @@
 #include <map>
 #include <string>
 
-#include <boost/shared_ptr.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/shared_ptr.hpp>
 
-#include <simplelogger/simplelogger.h>
+#include "spdlog/spdlog.h"
 
-class SysVApp
-{
-public:
-    SysVApp(boost::shared_ptr<SimpleLogger> log, std::string processName,
-            pid_t pid);
+class SysVApp {
+   public:
+    SysVApp(std::string processName, pid_t pid);
     virtual ~SysVApp();
 
     bool isAlive() const;
 
-private:
-    boost::shared_ptr<SimpleLogger> log;
+   private:
+    std::shared_ptr<spdlog::logger> log;
     std::string name;
     pid_t pid;
 };

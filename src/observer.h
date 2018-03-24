@@ -1,5 +1,5 @@
 //  ServerMonitor is a service to monitor a linux system
-//  Copyright (C) 2013 - 2016  Christian Rapp
+//  Copyright (C) 2013 - 2018 Christian Rapp
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -17,39 +17,36 @@
 #ifndef OBSERVER_H
 #define OBSERVER_H
 
-#include <iostream>
 #include <fstream>
-#include <vector>
-#include <string>
+#include <iostream>
 #include <map>
+#include <string>
+#include <vector>
 
-#include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string_regex.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/regex.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/thread.hpp>
 
-#include <simplelogger/simplelogger.h>
+#include "spdlog/spdlog.h"
 
-#include "smconfig.h"
 #include "globalutils.h"
 #include "mailer.h"
+#include "smconfig.h"
 
-class Observer
-{
-public:
+class Observer {
+   public:
     // Observer();
-    virtual ~Observer();
+    virtual ~Observer() = default;
     void start();
 
-protected:
-    Observer(boost::shared_ptr<SMConfig> cfg,
-             boost::shared_ptr<SimpleLogger> log,
-             boost::shared_ptr<Mailer> mail);
+   protected:
+    Observer(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Mailer> mail);
 
     bool watch;
     int msToWait;
@@ -57,7 +54,7 @@ protected:
     int nextMailAfter;
 
     boost::shared_ptr<SMConfig> cfg;
-    boost::shared_ptr<SimpleLogger> log;
+    std::shared_ptr<spdlog::logger> log;
     boost::shared_ptr<Mailer> mail;
     std::ifstream procStream;
     std::map<std::string, boost::posix_time::ptime> mapLastDetection;

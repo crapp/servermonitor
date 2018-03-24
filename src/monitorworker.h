@@ -1,5 +1,5 @@
 //  ServerMonitor is a service to monitor a linux system
-//  Copyright (C) 2013 - 2016  Christian Rapp
+//  Copyright (C) 2013 - 2018 Christian Rapp
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -17,42 +17,40 @@
 #ifndef MONITORWORKER_H
 #define MONITORWORKER_H
 
-#include <iostream>
 #include <fcntl.h>      /* For O_RDWR */
+#include <sys/stat.h>   //for mkfifo
+#include <sys/types.h>  //for what?
 #include <unistd.h>     /* For open(), create() */
 #include <cerrno>       //error numbers
-#include <sys/types.h>  //for what?
-#include <sys/stat.h>   //for mkfifo
+#include <iostream>
 #include <string>
 
-#include <boost/date_time/gregorian_calendar.hpp>
-#include <boost/thread.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/date_time/gregorian_calendar.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/make_shared.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/thread.hpp>
 
-#include <simplelogger/simplelogger.h>
+#include "spdlog/spdlog.h"
 
-#include "smconfig.h"
-#include "memoryobserver.h"
-#include "cpuobserver.h"
 #include "appobserver.h"
+#include "cpuobserver.h"
 #include "globalutils.h"
 #include "mailer.h"
+#include "memoryobserver.h"
+#include "smconfig.h"
 
-class MonitorWorker
-{
-public:
+class MonitorWorker {
+   public:
     MonitorWorker(boost::shared_ptr<SMConfig> cfg,
-                  boost::shared_ptr<SimpleLogger> log,
                   boost::shared_ptr<Mailer> mail);
     ~MonitorWorker();
     int startMonitoring();
 
-private:
+   private:
     boost::shared_ptr<SMConfig> cfg;
-    boost::shared_ptr<SimpleLogger> log;
+    std::shared_ptr<spdlog::logger> log;
     boost::shared_ptr<Mailer> mail;
     boost::shared_ptr<MemoryObserver> mwatch;
     boost::shared_ptr<CPUObserver> cpuwatch;

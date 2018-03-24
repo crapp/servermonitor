@@ -1,5 +1,5 @@
 //  ServerMonitor is a service to monitor a linux system
-//  Copyright (C) 2013 - 2016  Christian Rapp
+//  Copyright (C) 2013 - 2018 Christian Rapp
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -16,50 +16,42 @@
 
 #include "observer.h"
 
+#include "constants.h"
+
 Observer::Observer(boost::shared_ptr<SMConfig> cfg,
-                   boost::shared_ptr<SimpleLogger> log,
                    boost::shared_ptr<Mailer> mail)
-    : cfg(cfg), log(log), mail(mail)
-{
+    : cfg(cfg), mail(mail) {
+    this->log = spdlog::get(sm_constants::LOGGER);
 }
 
-Observer::~Observer() {}
-
-void Observer::start()
-{
+void Observer::start() {
     try {
         while (this->watch) {
-            if (!getData())
-                break;
+            if (!getData()) break;
             boost::this_thread::sleep(
                 boost::posix_time::milliseconds(this->msToWait));
         }
     } catch (boost::thread_interrupted) {
-        this->log->writeLog(SimpleLogger::logLevels::DEBUG,
-                            "Thread interrupted");
+        this->log->debug("Thread interrupted");
         noOfActiveThreads--;
         return;
     }
     noOfActiveThreads--;
-    this->log->writeLog(SimpleLogger::logLevels::WARNING,
-                        "Thread stopped because of an error");
+    this->log->warn("Thread stopped because of an error");
     this->mail->sendmail(
         this->threadID, false, "Thread stopped unexpectedly",
         "Thread stopped because of an error. Number if still active Threads" +
             std::to_string(noOfActiveThreads));
 }
 
-bool Observer::checkTimeoutMail(const boost::posix_time::ptime &pt)
-{
+bool Observer::checkTimeoutMail(const boost::posix_time::ptime &pt) {
     boost::posix_time::ptime ptimeNow =
         boost::posix_time::second_clock::universal_time();
     boost::posix_time::time_duration td = ptimeNow - pt;
-    this->log->writeLog(SimpleLogger::logLevels::DEBUG,
-                        "TimeoutMail duration total seconds: " +
-                            std::to_string(td.total_seconds()));
-    this->log->writeLog(
-        SimpleLogger::logLevels::DEBUG,
-        "Threshold for new mail: " + std::to_string(this->nextMailAfter));
+    this->log->debug("TimeoutMail duration total seconds: " +
+                     std::to_string(td.total_seconds()));
+    this->log->debug("Threshold for new mail: " +
+                     std::to_string(this->nextMailAfter));
 
     if (td.total_seconds() < this->nextMailAfter) {
         return false;

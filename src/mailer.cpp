@@ -1,5 +1,5 @@
 //  ServerMonitor is a service to monitor a linux system
-//  Copyright (C) 2013 - 2016  Christian Rapp
+//  Copyright (C) 2013 - 2018 Christian Rapp
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -16,54 +16,55 @@
 
 #include "mailer.h"
 
-Mailer::Mailer(boost::shared_ptr<SMConfig> cfg,
-               boost::shared_ptr<SimpleLogger> log)
-    : cfg(cfg), log(log)
-{
+#include "constants.h"
+
+Mailer::Mailer(boost::shared_ptr<SMConfig> cfg) : cfg(cfg) {
+    this->log = spdlog::get(sm_constants::LOGGER);
 }
 
-void Mailer::sendmail(const int &threadID, bool data, std::string subject,
-                      std::string message)
-{
+void Mailer::sendmail(int threadID, bool data, std::string subject,
+                      std::string message) {
     // make this email sender thread safe with a simple lock
     boost::lock_guard<boost::mutex> lockGuard(Mailer::mtx);
 
-    if (data)
+    this->log->debug("trying to send this message: \n " + message);
+
+    if (data) {
         this->collectData(message, threadID);
+    }
     try {
         subject.insert(0, "Machine: " + machineName() + " -- ");
         // Open mail command with popen
         FILE *mta = popen(
-            this->cfg->getConfigValue("/config/email/mailCommand").c_str(), "w");
-        if (mta != 0) {
+            this->cfg->getConfigValue("/config/email/mailCommand").c_str(),
+            "w");
+        if (mta != nullptr) {
             fprintf(mta, "To: %s\n",
                     this->cfg->getConfigValue("/config/email/mailTo").c_str());
-            fprintf(mta, "From: %s\n",
-                    this->cfg->getConfigValue("/config/email/mailFrom").c_str());
+            fprintf(
+                mta, "From: %s\n",
+                this->cfg->getConfigValue("/config/email/mailFrom").c_str());
             fprintf(mta, "Subject: %s\n\n", subject.c_str());
             fwrite(message.c_str(), 1, strlen(message.c_str()), mta);
             fwrite(".\n", 1, 2, mta);
 
             pclose(mta);
         } else {
-            this->log->writeLog(
-                SimpleLogger::logLevels::ERROR,
+            this->log->error(
                 "Can not send an email, was not able to open mail command " +
-                    this->cfg->getConfigValue("/config/email/mailCommand"));
+                this->cfg->getConfigValue("/config/email/mailCommand"));
         }
     } catch (const std::exception &ex) {
-        this->log->writeLog(SimpleLogger::logLevels::ERROR,
-                            std::string("Can not send email, ") + ex.what());
+        this->log->error(std::string("Can not send email, ") + ex.what());
     } catch (...) {
-        this->log->writeLog(SimpleLogger::logLevels::ERROR,
-                            "Can not send email, general exception occured");
+        this->log->error("Can not send email, general exception occured");
     }
-    this->log->writeLog(SimpleLogger::logLevels::INFO,
-                        "Mail has been sended successfully");
+    this->log->info("Mail has been send successfully");
 }
 
-void Mailer::collectData(std::string &msg, const int &threadID)
-{
+// TODO: Pass by value and move. Return the string and profit from RVO
+void Mailer::collectData(std::string &msg,
+                         BOOST_ATTRIBUTE_UNUSED int threadID) {
     std::map<std::string, std::vector<std::string>> dataCollectors;
     dataCollectors =
         this->cfg->getConfigMap("/config/email/dataCollectors//collector");
@@ -71,22 +72,20 @@ void Mailer::collectData(std::string &msg, const int &threadID)
         typedef std::pair<std::string, std::vector<std::string>> DCollectors;
         BOOST_FOREACH (const DCollectors &dc, dataCollectors) {
             msg +=
-                "\n\n-----------------------------------------------------------"
+                "\n\n----------------------------------------------------------"
+                "-"
                 "----------------\n";
             msg += "Collecting data from command: " + dc.first + "\n\n";
-            this->log->writeLog(SimpleLogger::logLevels::INFO,
-                                "Collecting data from command: " + dc.first);
+            this->log->info("Collecting data from command: " + dc.first);
             msg += execSysCmd(dc.second[1].c_str());
         }
     } else {
-        this->log->writeLog(SimpleLogger::logLevels::WARNING,
-                            "No data collectors defined");
+        this->log->warn("No data collectors defined");
     }
     msg += "\n\nFinished collecting data";
 }
 
-std::string Mailer::machineName()
-{
+std::string Mailer::machineName() {
     std::stringstream s;
     char hostn[1024];
     memset(hostn, 0, 1024);
@@ -97,6 +96,5 @@ std::string Mailer::machineName()
         s << "UNDEFINED";
     }
 
-    // s = execSysCmd("hostname -f");
     return s.str();
 }

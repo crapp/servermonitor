@@ -1,5 +1,5 @@
 //  ServerMonitor is a service to monitor a linux system
-//  Copyright (C) 2013 - 2016  Christian Rapp
+//  Copyright (C) 2013 - 2018 Christian Rapp
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -17,28 +17,24 @@
 #include "appobserver.h"
 
 AppObserver::AppObserver(boost::shared_ptr<SMConfig> cfg,
-                         boost::shared_ptr<SimpleLogger> log,
                          boost::shared_ptr<Mailer> mail)
-    : Observer(cfg, log, mail)
-{
+    : Observer(cfg, mail) {
     this->threadID = 3;
     this->watch = true;
     try {
-        this->msToWait = std::stoi(
-            this->cfg->getConfigValue("/config/observer/applications/pollTime"));
+        this->msToWait = std::stoi(this->cfg->getConfigValue(
+            "/config/observer/applications/pollTime"));
     } catch (const std::exception &ex) {
-        this->log->writeLog(SimpleLogger::logLevels::ERROR,
-                            "Can not parse \"observer/applications/pollTime\" " +
-                                std::string(ex.what()));
+        this->log->error("Can not parse \"observer/applications/pollTime\" " +
+                         std::string(ex.what()));
         this->msToWait = 1000;
     }
     try {
         this->nextMailAfter = std::stoi(this->cfg->getConfigValue(
             "/config/observer/applications/secondsNextMail"));
     } catch (const std::exception &ex) {
-        this->log->writeLog(
-            SimpleLogger::logLevels::ERROR,
-            "Can not parse \"email/secondsNextMail\" " + std::string(ex.what()));
+        this->log->error("Can not parse \"email/secondsNextMail\" " +
+                         std::string(ex.what()));
         ;
         this->nextMailAfter = 43200;  // every 12 hours
     }
@@ -47,27 +43,22 @@ AppObserver::AppObserver(boost::shared_ptr<SMConfig> cfg,
 
     this->checkAppsRunning();
 
-    this->log->writeLog(SimpleLogger::logLevels::DEBUG,
-                        "AppObserver Object instantiated");
+    this->log->debug("AppObserver Object instantiated");
 }
 
-bool AppObserver::getData()
-{
-    this->log->writeLog(SimpleLogger::logLevels::DEBUG,
-                        "AppObserver is checking processes");
+bool AppObserver::getData() {
+    this->log->debug("AppObserver is checking processes");
 
     auto nonRunningApp =
         std::find_if_not(this->appVector.begin(), this->appVector.end(),
                          [](const SysVApp &app) { return app.isAlive(); });
 
     if (nonRunningApp != this->appVector.end()) {
-        this->log->writeLog(
-            SimpleLogger::logLevels::DEBUG,
+        this->log->debug(
             "Found non running apps. Will check all Processes now");
         this->checkAppsRunning();
     } else {
-        this->log->writeLog(SimpleLogger::logLevels::DEBUG,
-                            "All Applications are running");
+        this->log->debug("All Applications are running");
     }
 
     return true;
@@ -77,29 +68,26 @@ void AppObserver::handleStreamData(std::vector<std::string> &v) {}
 
 void AppObserver::checkStreamData() {}
 
-void AppObserver::initLastDetection()
-{
+void AppObserver::initLastDetection() {
     typedef std::pair<std::string, std::vector<std::string>>
         ApplicationAttributes;
     boost::posix_time::ptime pt =
         boost::posix_time::second_clock::universal_time() -
         boost::posix_time::seconds(this->nextMailAfter);
-    BOOST_FOREACH (const ApplicationAttributes &AppAttrPair, this->appsToCheck) {
-        this->log->writeLog(SimpleLogger::logLevels::DEBUG,
-                            "Initializing last detection map for application: " +
-                                AppAttrPair.first);
+    BOOST_FOREACH (const ApplicationAttributes &AppAttrPair,
+                   this->appsToCheck) {
+        this->log->debug("Initializing last detection map for application: " +
+                         AppAttrPair.first);
         this->mapLastDetection.insert(
             std::pair<std::string, boost::posix_time::ptime>(AppAttrPair.first,
                                                              pt));
     }
 }
 
-void AppObserver::checkAppsRunning()
-{
+void AppObserver::checkAppsRunning() {
     this->appsToCheck =
         this->cfg->getConfigMap("/config/observer/applications//app");
-    if (this->appsToCheck.empty())
-        this->watch = false;
+    if (this->appsToCheck.empty()) this->watch = false;
 
     this->processNamePid.clear();
     this->fillProcessPidMap();
@@ -118,18 +106,15 @@ void AppObserver::checkAppsRunning()
                 if (iter != this->processNamePid.end()) {
                     // app is running, generate object and push_back
                     this->appVector.push_back(
-                        SysVApp(this->log, iter->first, iter->second));
-                    this->log->writeLog(SimpleLogger::logLevels::DEBUG,
-                                        iter->first + " is running");
+                        SysVApp(iter->first, iter->second));
+                    this->log->debug(iter->first + " is running");
                 } else {
-                    this->log->writeLog(
-                        SimpleLogger::logLevels::WARNING,
-                        "Application " + mapEntry.first + " is not running");
+                    this->log->warn("Application " + mapEntry.first +
+                                    " is not running");
                     // Process not running, check if we need to send an E-Mail
                     if (this->checkTimeoutMail(
                             this->mapLastDetection.at(mapEntry.first))) {
-                        this->log->writeLog(SimpleLogger::logLevels::DEBUG,
-                                            "Will notify user");
+                        this->log->debug("Will notify user");
                         appsNotRunningSendMail = true;
                     }
                     nonRunning += " " + iter->first;
@@ -137,21 +122,17 @@ void AppObserver::checkAppsRunning()
                         boost::posix_time::second_clock::universal_time();
                 }
             } else {
-                this->log->writeLog(
-                    SimpleLogger::logLevels::DEBUG,
-                    "Checking of " + mapEntry.first + " is deactivated");
+                this->log->debug("Checking of " + mapEntry.first +
+                                 " is deactivated");
             }
         } catch (const std::exception &ex) {
-            this->log->writeLog(SimpleLogger::logLevels::ERROR,
-                                "Can not check if application " +
-                                    mapEntry.first + " is running.\n" +
-                                    ex.what());
+            this->log->error("Can not check if application " + mapEntry.first +
+                             " is running.\n" + ex.what());
         }
     }
 }
 
-void AppObserver::fillProcessPidMap()
-{
+void AppObserver::fillProcessPidMap() {
     namespace fs = boost::filesystem;
     boost::regex onlyNumericDir("^[0-9]+$");
     char readlinkBuf[1024];
@@ -172,21 +153,18 @@ void AppObserver::fillProcessPidMap()
                         {fs::path(readlinkBuf).stem().string(),
                          std::stoi(dir_itr->path().stem().string())});
                 } else {
-                    this->log->writeLog(SimpleLogger::logLevels::ERROR,
-                                        "Can not read exe link in /proc/" + p +
-                                            "\n" + strerror(errno));
+                    this->log->error("Can not read exe link in /proc/" + p +
+                                     "\n" + strerror(errno));
                     // TODO: Should we exit the loop here and clear the map?
                 }
             }
         }
-        this->log->writeLog(SimpleLogger::logLevels::DEBUG,
-                            "Detected " +
-                                std::to_string(this->processNamePid.size()) +
-                                " running processes");
+        this->log->debug("Detected " +
+                         std::to_string(this->processNamePid.size()) +
+                         " running processes");
     } catch (const std::exception &ex) {
-        this->log->writeLog(SimpleLogger::logLevels::ERROR,
-                            "Could not collect running processes from /proc \n" +
-                                std::string(ex.what()));
+        this->log->error("Could not collect running processes from /proc \n" +
+                         std::string(ex.what()));
         // make sure the map is empty
         this->processNamePid.clear();
     }

@@ -1,5 +1,5 @@
 //  ServerMonitor is a service to monitor a linux system
-//  Copyright (C) 2013 - 2016  Christian Rapp
+//  Copyright (C) 2013 - 2018 Christian Rapp
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -17,10 +17,10 @@
 #ifndef GLOBALUTILS_H
 #define GLOBALUTILS_H
 
-#include <string>
-#include <sstream>
 #include <cstdio>
+#include <sstream>
 #include <stdexcept>  // std::invalid_argument
+#include <string>
 
 #define DEVELOPMENT
 
@@ -29,15 +29,13 @@ extern int noOfActiveThreads;
 /**
  * @brief executes a shell command and returns it's ouput as string
  * @param cmd -> The command to execute
- * @return returns ERROR when something failed, otherwise a string with the command
- * ouput will be returned.
+ * @return returns ERROR when something failed, otherwise a string with the
+ * command ouput will be returned.
  */
-inline std::string execSysCmd(const char* cmd)
-{
+inline std::string execSysCmd(const char* cmd) {
     // NOTE: Append export LC_MESSAGES=C && to all commands?!
     FILE* pipe = popen(cmd, "r");
-    if (!pipe)
-        return "ERROR";
+    if (!pipe) return "ERROR";
     char buffer[128];
     std::string result = "";
     while (!feof(pipe)) {
@@ -50,8 +48,7 @@ inline std::string execSysCmd(const char* cmd)
         }
     }
     int retClose = pclose(pipe);
-    if (retClose == -1)
-        return "ERROR";
+    if (retClose == -1) return "ERROR";
     return result;
 }
 

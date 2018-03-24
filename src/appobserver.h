@@ -1,5 +1,5 @@
 //  ServerMonitor is a service to monitor a linux system
-//  Copyright (C) 2013 - 2016  Christian Rapp
+//  Copyright (C) 2013 - 2018 Christian Rapp
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -20,19 +20,17 @@
 #include "observer.h"
 #include "sysvapp.h"
 
-class AppObserver : public Observer
-{
-public:
+class AppObserver : public Observer {
+   public:
     AppObserver(boost::shared_ptr<SMConfig> cfg,
-                boost::shared_ptr<SimpleLogger> log,
                 boost::shared_ptr<Mailer> mail);
 
-private:
+   private:
     bool getData();
     void handleStreamData(std::vector<std::string> &v);
     void checkStreamData();
     void initLastDetection();
-    
+
     void checkAppsRunning();
     void fillProcessPidMap();
 
