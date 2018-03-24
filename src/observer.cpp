@@ -18,8 +18,8 @@
 
 #include "constants.h"
 
-Observer::Observer(boost::shared_ptr<SMConfig> cfg,
-                   boost::shared_ptr<Mailer> mail)
+Observer::Observer(std::shared_ptr<SMConfig> cfg,
+                   std::shared_ptr<Mailer> mail)
     : cfg(cfg), mail(mail) {
     this->log = spdlog::get(sm_constants::LOGGER);
 }

@@ -17,19 +17,17 @@
 #ifndef MONITORWORKER_H
 #define MONITORWORKER_H
 
-#include <fcntl.h>      /* For O_RDWR */
-#include <sys/stat.h>   //for mkfifo
-#include <sys/types.h>  //for what?
-#include <unistd.h>     /* For open(), create() */
-#include <cerrno>       //error numbers
+#include <fcntl.h>     /* For O_RDWR */
+#include <sys/stat.h>  //for mkfifo
+#include <unistd.h>    /* For open(), create() */
+#include <cerrno>      //error numbers
 #include <iostream>
+#include <memory>
 #include <string>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/date_time/gregorian_calendar.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 
 #include "spdlog/spdlog.h"
@@ -43,21 +41,21 @@
 
 class MonitorWorker {
    public:
-    MonitorWorker(boost::shared_ptr<SMConfig> cfg,
-                  boost::shared_ptr<Mailer> mail);
+    MonitorWorker(std::shared_ptr<SMConfig> cfg,
+                  std::shared_ptr<Mailer> mail);
     ~MonitorWorker();
     int startMonitoring();
 
    private:
-    boost::shared_ptr<SMConfig> cfg;
+    std::shared_ptr<SMConfig> cfg;
     std::shared_ptr<spdlog::logger> log;
-    boost::shared_ptr<Mailer> mail;
-    boost::shared_ptr<MemoryObserver> mwatch;
-    boost::shared_ptr<CPUObserver> cpuwatch;
-    boost::shared_ptr<AppObserver> appwatch;
-    boost::shared_ptr<boost::thread> mwatchThread;
-    boost::shared_ptr<boost::thread> cpuwatchThread;
-    boost::shared_ptr<boost::thread> appwatchThread;
+    std::shared_ptr<Mailer> mail;
+    std::shared_ptr<MemoryObserver> mwatch;
+    std::shared_ptr<CPUObserver> cpuwatch;
+    std::shared_ptr<AppObserver> appwatch;
+    std::shared_ptr<boost::thread> mwatchThread;
+    std::shared_ptr<boost::thread> cpuwatchThread;
+    std::shared_ptr<boost::thread> appwatchThread;
 
     int threadID;
     std::string fifopath;

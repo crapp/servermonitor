@@ -25,8 +25,8 @@ class ProcObserver : public Observer {
     virtual ~ProcObserver() = default;
 
    protected:
-    ProcObserver(boost::shared_ptr<SMConfig> cfg,
-                 boost::shared_ptr<Mailer> mail);
+    ProcObserver(std::shared_ptr<SMConfig> cfg,
+                 std::shared_ptr<Mailer> mail);
 
    private:
     bool getData();

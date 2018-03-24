@@ -16,8 +16,8 @@
 
 #include "appobserver.h"
 
-AppObserver::AppObserver(boost::shared_ptr<SMConfig> cfg,
-                         boost::shared_ptr<Mailer> mail)
+AppObserver::AppObserver(std::shared_ptr<SMConfig> cfg,
+                         std::shared_ptr<Mailer> mail)
     : Observer(cfg, mail) {
     this->threadID = 3;
     this->watch = true;

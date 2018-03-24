@@ -20,8 +20,6 @@
 #include <string>
 
 #include <boost/filesystem/fstream.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/shared_ptr.hpp>
 
 #include "spdlog/spdlog.h"
 
@@ -35,7 +33,7 @@
 namespace smc = sm_constants;
 
 int main(BOOST_ATTRIBUTE_UNUSED int argc, BOOST_ATTRIBUTE_UNUSED char *argv[]) {
-    boost::shared_ptr<SMConfig> cfg = boost::make_shared<SMConfig>(CONFIGPATH);
+    std::shared_ptr<SMConfig> cfg = std::make_shared<SMConfig>(CONFIGPATH);
 
     if (!cfg->getConfigFileOK()) {
         std::cout << "ServerMontior could not open the config file."
@@ -64,7 +62,7 @@ int main(BOOST_ATTRIBUTE_UNUSED int argc, BOOST_ATTRIBUTE_UNUSED char *argv[]) {
         return 1;
     }
 
-    boost::shared_ptr<Mailer> mail = boost::make_shared<Mailer>(cfg);
+    std::shared_ptr<Mailer> mail = std::make_shared<Mailer>(cfg);
 
     std::stringstream version;
     version << VERSION_MAJOR << "." << VERSION_MINOR;
@@ -73,8 +71,8 @@ int main(BOOST_ATTRIBUTE_UNUSED int argc, BOOST_ATTRIBUTE_UNUSED char *argv[]) {
     }
     log->info("Starting ServerMonitor " + version.str());
 
-    boost::shared_ptr<MonitorWorker> mw =
-        boost::make_shared<MonitorWorker>(cfg, mail);
+    std::shared_ptr<MonitorWorker> mw =
+        std::make_shared<MonitorWorker>(cfg, mail);
     mw->startMonitoring();
 
     log->info("ServerMonitor has stopped");

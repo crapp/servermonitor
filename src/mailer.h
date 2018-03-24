@@ -19,12 +19,11 @@
 
 #include <unistd.h>
 #include <cstdio>  //needed for popen and FILE handle
+#include <memory>
 #include <sstream>
 #include <string>
 
 #include <boost/foreach.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/shared_ptr.hpp>
 #include <boost/thread/lock_guard.hpp>
 #include <boost/thread/mutex.hpp>
 
@@ -34,12 +33,12 @@
 
 class Mailer {
    public:
-    Mailer(boost::shared_ptr<SMConfig> cfg);
+    Mailer(std::shared_ptr<SMConfig> cfg);
     void sendmail(int threadID, bool data, std::string subject,
                   std::string message);
 
    private:
-    boost::shared_ptr<SMConfig> cfg;
+    std::shared_ptr<SMConfig> cfg;
     std::shared_ptr<spdlog::logger> log;
     boost::mutex mtx;
 

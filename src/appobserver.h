@@ -22,8 +22,8 @@
 
 class AppObserver : public Observer {
    public:
-    AppObserver(boost::shared_ptr<SMConfig> cfg,
-                boost::shared_ptr<Mailer> mail);
+    AppObserver(std::shared_ptr<SMConfig> cfg,
+                std::shared_ptr<Mailer> mail);
 
    private:
     bool getData();

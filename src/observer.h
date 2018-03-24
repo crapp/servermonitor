@@ -22,15 +22,14 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <memory>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string_regex.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/foreach.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/regex.hpp>
-#include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 
 #include "spdlog/spdlog.h"
@@ -46,16 +45,16 @@ class Observer {
     void start();
 
    protected:
-    Observer(boost::shared_ptr<SMConfig> cfg, boost::shared_ptr<Mailer> mail);
+    Observer(std::shared_ptr<SMConfig> cfg, std::shared_ptr<Mailer> mail);
 
     bool watch;
     int msToWait;
     int threadID;
     int nextMailAfter;
 
-    boost::shared_ptr<SMConfig> cfg;
+    std::shared_ptr<SMConfig> cfg;
     std::shared_ptr<spdlog::logger> log;
-    boost::shared_ptr<Mailer> mail;
+    std::shared_ptr<Mailer> mail;
     std::ifstream procStream;
     std::map<std::string, boost::posix_time::ptime> mapLastDetection;
     std::string procStreamPath;

@@ -18,7 +18,7 @@
 
 #include "constants.h"
 
-Mailer::Mailer(boost::shared_ptr<SMConfig> cfg) : cfg(cfg) {
+Mailer::Mailer(std::shared_ptr<SMConfig> cfg) : cfg(cfg) {
     this->log = spdlog::get(sm_constants::LOGGER);
 }
 

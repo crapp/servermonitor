@@ -21,8 +21,8 @@
 
 class CPUObserver : public ProcObserver {
    public:
-    CPUObserver(boost::shared_ptr<SMConfig> cfg,
-                boost::shared_ptr<Mailer> mail);
+    CPUObserver(std::shared_ptr<SMConfig> cfg,
+                std::shared_ptr<Mailer> mail);
 
     ~CPUObserver() = default;
 

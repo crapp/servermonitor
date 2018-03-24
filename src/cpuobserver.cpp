@@ -16,8 +16,8 @@
 
 #include "cpuobserver.h"
 
-CPUObserver::CPUObserver(boost::shared_ptr<SMConfig> cfg,
-                         boost::shared_ptr<Mailer> mail)
+CPUObserver::CPUObserver(std::shared_ptr<SMConfig> cfg,
+                         std::shared_ptr<Mailer> mail)
     : ProcObserver(cfg, mail) {
     this->log = log;
     this->threadID = 1;

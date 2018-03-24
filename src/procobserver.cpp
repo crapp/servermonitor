@@ -16,8 +16,8 @@
 
 #include "procobserver.h"
 
-ProcObserver::ProcObserver(boost::shared_ptr<SMConfig> cfg,
-                           boost::shared_ptr<Mailer> mail)
+ProcObserver::ProcObserver(std::shared_ptr<SMConfig> cfg,
+                           std::shared_ptr<Mailer> mail)
     : Observer(cfg, mail)
 
 {}

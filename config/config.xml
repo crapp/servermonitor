@@ -2,7 +2,7 @@
 <config>
     <common>
         <!-- Where to store the named pipe for the program. The service needs write permissions -->
-        <fifoPath>/tmp/servermonitor.fifo</fifoPath> 
+        <fifoPath>/tmp/servermonitor.fifo</fifoPath>
     </common>
     <email>
         <!-- EMail command -->
@@ -20,10 +20,8 @@
     <logger>
         <!-- Where to store the logfiles, the service needs write permissions -->
         <logDir>/tmp/log/servermonitor</logDir>
-        <!-- All events with this log level and above will be logged -->
-        <minLogLevel>0</minLogLevel>
-        <logToFile>1</logToFile>
-        <logToSyslog>0</logToSyslog>
+        <!-- All events with this log level and above will be logged. possible values: debug, info, warn, error -->
+        <minLogLevel>debug</minLogLevel>
         <logtimeformat>%F %T</logtimeformat>
     </logger>
     <observer>
@@ -40,7 +38,7 @@
             <secondsNextMail>3600</secondsNextMail>
             <cpu>
                 <!-- check cpu avg load, increase this values if you have more than one cpu/core -->
-                <check>true</check>            
+                <check>true</check>
                 <processFilesystem>/proc/loadavg</processFilesystem>
                 <avg5threshold>0.5</avg5threshold>
                 <avg15threshold>0.8</avg15threshold>
@@ -71,8 +69,8 @@
             <!-- name -> name of the process, restart -> restart the application, check -> check if the application is running,
             restartcmd -> the command to restart the application -->
             <sysv>
-                <app name="postfix" restart="true" check="1" restartcmd="/etc/init.d/postfix start" /> 
-                <app name="ntpd" restart="false" check="1" restartcmd="/etc/init.d/ntpd start" />  
+                <app name="postfix" restart="true" check="1" restartcmd="/etc/init.d/postfix start" />
+                <app name="ntpd" restart="false" check="1" restartcmd="/etc/init.d/ntpd start" />
                 <app name="apache2" restart="true" check="1" restartcmd="/etc/init.d/apache2 start" />
                 <app name="mysqld" restart="true" check="1" restartcmd="/etc/init.d/mysqld start" />
                 <app name="sshd" restart="true" check="1" restartcmd="/etc/init.d/ssh start" />

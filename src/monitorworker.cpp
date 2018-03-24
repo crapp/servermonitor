@@ -17,8 +17,8 @@
 #include "monitorworker.h"
 #include "constants.h"
 
-MonitorWorker::MonitorWorker(boost::shared_ptr<SMConfig> cfg,
-                             boost::shared_ptr<Mailer> mail)
+MonitorWorker::MonitorWorker(std::shared_ptr<SMConfig> cfg,
+                             std::shared_ptr<Mailer> mail)
     : cfg(cfg), mail(mail) {
     this->log = spdlog::get(sm_constants::LOGGER);
     this->threadID = 0;
@@ -43,8 +43,8 @@ int MonitorWorker::startMonitoring() {
     if (this->cfg->getConfigValue("/config/observer/sysstat/cpu/check") ==
         "true") {
         this->log->info("CPU Observer is activated");
-        this->cpuwatch = boost::make_shared<CPUObserver>(this->cfg, this->mail);
-        this->cpuwatchThread = boost::make_shared<boost::thread>(
+        this->cpuwatch = std::make_shared<CPUObserver>(this->cfg, this->mail);
+        this->cpuwatchThread = std::make_shared<boost::thread>(
             boost::bind(&CPUObserver::start, this->cpuwatch));
         noOfActiveThreads++;
     }
@@ -52,16 +52,16 @@ int MonitorWorker::startMonitoring() {
         "true") {
         this->log->info("Memory Observer is activated");
         this->mwatch =
-            boost::make_shared<MemoryObserver>(this->cfg, this->mail);
-        this->mwatchThread = boost::make_shared<boost::thread>(
+            std::make_shared<MemoryObserver>(this->cfg, this->mail);
+        this->mwatchThread = std::make_shared<boost::thread>(
             boost::bind(&MemoryObserver::start, this->mwatch));
         noOfActiveThreads++;
     }
     if (this->cfg->getConfigValue("/config/observer/applications/check") ==
         "true") {
         this->log->info("observer/applications Observer is activated");
-        this->appwatch = boost::make_shared<AppObserver>(this->cfg, this->mail);
-        this->appwatchThread = boost::make_shared<boost::thread>(
+        this->appwatch = std::make_shared<AppObserver>(this->cfg, this->mail);
+        this->appwatchThread = std::make_shared<boost::thread>(
             boost::bind(&AppObserver::start, this->appwatch));
         noOfActiveThreads++;
     }

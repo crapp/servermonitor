@@ -16,8 +16,8 @@
 
 #include "memoryobserver.h"
 
-MemoryObserver::MemoryObserver(boost::shared_ptr<SMConfig> cfg,
-                               boost::shared_ptr<Mailer> mail)
+MemoryObserver::MemoryObserver(std::shared_ptr<SMConfig> cfg,
+                               std::shared_ptr<Mailer> mail)
     : ProcObserver(cfg, mail)
 
 {

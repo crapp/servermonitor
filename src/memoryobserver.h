@@ -23,8 +23,8 @@
 
 class MemoryObserver : public ProcObserver {
    public:
-    MemoryObserver(boost::shared_ptr<SMConfig> cfg,
-                   boost::shared_ptr<Mailer> mail);
+    MemoryObserver(std::shared_ptr<SMConfig> cfg,
+                   std::shared_ptr<Mailer> mail);
     ~MemoryObserver() = default;
 
    private:
