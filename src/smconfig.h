@@ -23,7 +23,64 @@
 #include <vector>
 
 #include "globalutils.h"
-#include "pugixml.hpp"  //xml Parser
+#include "pugixml.hpp" //xml Parser
+
+namespace smconfig_constants
+{
+// NODES
+const char *const N_CONFIG = "config";
+const char *const N_COMMON = "common";
+
+const char *const N_EMAIL = "email";
+const char *const N_MAILCOMMAND = "mailCommand";
+const char *const N_MAILTO = "mailTo";
+const char *const N_MAILFROM = "mailFrom";
+const char *const N_DATACOLLETORS = "dataCollectors";
+const char *const N_COLLECTOR = "collector";
+
+const char *const N_LOGGER = "logger";
+const char *const N_LOGDIR = "logDir";
+const char *const N_MINLOGLEVEL = "minLogLevel";
+const char *const N_logtimeformat = "logtimeformat";
+
+const char *const N_OBSERVER = "observer";
+const char *const N_SYSHEALTH = "syshealth";
+const char *const N_CHECK = "check";
+const char *const N_SYSSTAT = "sysstat";
+const char *const N_POLLTIME = "pollTime";
+const char *const N_SECONDSNEXTMAIL = "secondsNextMail";
+const char *const N_CPU = "cpu";
+const char *const N_PROCESSFILESYSTEM = "processFilesystem";
+const char *const N_AVG5THRESHOLD = "avg5threshold";
+const char *const N_AVG15THRESHOLD = "avg15threshold";
+const char *const N_MEMORY = "memory";
+const char *const N_MINIMUMFREE = "minimumFree";
+const char *const N_MAXSWAP = "maximumSwap";
+const char *const N_NOVALUES = "noValuesCompare";
+const char *const N_FILESYSTEM = "filesystem";
+const char *const N_PATH = "path";
+const char *const N_APPLICATIONS = "applications";
+const char *const N_SYSV = "sysv";
+const char *const N_APP = "app";
+const char *const N_SYSTEMD = "systemd";
+const char *const N_SERVICE = "service";
+
+//parameters
+
+const char *const N_PATH_NAME = "name";
+const char *const N_PATH_ABSPATH = "abspath";
+const char *const N_PATH_MINFREE = "minfree";
+const char *const N_PATH_CHECK = "check";
+
+const char *const N_APP_NAME = "name";
+const char *const N_APP_RESTART = "true";
+const char *const N_APP_CHECK = "1";
+const char *const N_APP_RESTARTCMD = "restartcmd";
+
+const char *const N_SERVICE_NAME = "name";
+const char *const N_SERVICE_CHECK = "check";
+
+} // namespace smconfig_constants
 
 /**
  * @brief The SMConfig class provides access to the xml based configuration via
@@ -31,19 +88,20 @@
  *
  * @author Christian Rapp crapp
  */
-class SMConfig {
-   public:
+class SMConfig
+{
+public:
     SMConfig(const std::string &configPath);
     std::string getConfigValue(const std::string &xpath);
-    std::map<std::string, std::vector<std::string>> getConfigMap(
-        const std::string &xpath);
+    std::map<std::string, std::vector<std::string>>
+    getConfigMap(const std::string &xpath);
 
     bool getConfigFileOK();
 
-   private:
+private:
     std::string configFile;
     pugi::xml_document cfgdoc;
     bool configFileOK;
 };
 
-#endif  // SMCONFIG_H
+#endif // SMCONFIG_H
