@@ -19,7 +19,7 @@
 
 #include <cstdio>
 #include <sstream>
-#include <stdexcept>  // std::invalid_argument
+#include <stdexcept> // std::invalid_argument
 #include <string>
 
 #define DEVELOPMENT
@@ -32,10 +32,12 @@ extern int noOfActiveThreads;
  * @return returns ERROR when something failed, otherwise a string with the
  * command ouput will be returned.
  */
-inline std::string execSysCmd(const char* cmd) {
+inline std::string execSysCmd(const char *cmd)
+{
     // NOTE: Append export LC_MESSAGES=C && to all commands?!
-    FILE* pipe = popen(cmd, "r");
-    if (!pipe) return "ERROR";
+    FILE *pipe = popen(cmd, "r");
+    if (!pipe)
+        return "ERROR";
     char buffer[128];
     std::string result = "";
     while (!feof(pipe)) {
@@ -48,8 +50,27 @@ inline std::string execSysCmd(const char* cmd) {
         }
     }
     int retClose = pclose(pipe);
-    if (retClose == -1) return "ERROR";
+    if (retClose == -1)
+        return "ERROR";
     return result;
 }
 
-#endif  // GLOBALUTILS_H
+/**
+ * @brief Viariadic template function to stringify everything
+ *
+ * @tparam Args Template Parameter pack
+ * @param args
+ *
+ * @return std::string
+ */
+template <typename... Args>
+std::string stringify(Args const &... args)
+{
+    std::ostringstream stream;
+    using List = int[];
+    (void)List{0, ((void)(stream << args), 0)...};
+
+    return stream.str();
+}
+
+#endif // GLOBALUTILS_H
